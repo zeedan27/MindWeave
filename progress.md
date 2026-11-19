@@ -84,3 +84,9 @@
 - **Source Files (5):** `src/lib/demo-workspace.ts`, `src/lib/ingestion/extractors.ts`, `src/lib/ingestion/weaver.ts`, `src/app/api/healthz/[probe]/route.ts`, `src/app/api/weave/route.ts`
 - **Tests:** `tests/slice2-ingestion-weave.test.ts`
 - **Verification:** `npm run typecheck` (exit `0`), `npm test` (`2 passed, 11/11 tests passed`).
+
+### Slice 3: Cognitive Graph APIs (Expand, Lenses, Blind Spots, Study Grader, Grounded Chat)
+- **SOP Created:** `architecture/cognitive-apis.md`
+- **Source Files (5):** `src/app/api/expand/route.ts`, `src/app/api/lens/route.ts`, `src/app/api/blindspots/route.ts`, `src/app/api/study/evaluate/route.ts`, `src/app/api/chat/route.ts`
+- **Tests:** `tests/slice3-cognitive-apis.test.ts`
+- **Verification:** `npm run typecheck` (exit `0`), `npm test` (`3 passed, 16/16 tests passed`).
