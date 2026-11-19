@@ -1,0 +1,23 @@
+# Secrets & environment
+.env*
+!.env.example
+
+# Dependencies & build output
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# S.C.O.P.E. & Tooling scratch directories
+.tmp/
+.worktrees/
+.taste-skill/
+*.har
+cookies.json
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+*.log
+*.tsbuildinfo

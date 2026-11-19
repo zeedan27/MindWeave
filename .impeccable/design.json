@@ -1,0 +1,175 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-20T01:28:00+06:00",
+  "title": "Design System: MindWeave",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Deep Petrol Teal",
+        "canonical": "#0f5257",
+        "tonalRamp": ["#062426", "#0b3e42", "#0f5257", "#187178", "#2d9299", "#69b7bd", "#a8d8dc", "#d9ecef"]
+      },
+      "studio-putty": {
+        "role": "neutral",
+        "displayName": "Studio Putty",
+        "canonical": "#c3d7e5",
+        "tonalRamp": ["#1f2e38", "#354b59", "#516c7d", "#7490a3", "#9ab5c7", "#c3d7e5", "#d0e0eb", "#edf3f7"]
+      },
+      "citation-cobalt": {
+        "role": "secondary",
+        "displayName": "Citation Cobalt",
+        "canonical": "#1d4ed8",
+        "tonalRamp": ["#0f2461", "#16358f", "#1d4ed8", "#3b6df0", "#6892f7", "#9bb8fa", "#c8d9fd", "#dbeafe"]
+      },
+      "consensus-emerald": {
+        "role": "tertiary",
+        "displayName": "Consensus Emerald",
+        "canonical": "#156f4c",
+        "tonalRamp": ["#083020", "#0e4d34", "#156f4c", "#1f8f63", "#36b380", "#6fd1a7", "#aae6cc", "#dcf7eb"]
+      },
+      "unique-ochre": {
+        "role": "tertiary",
+        "displayName": "Unique Ochre",
+        "canonical": "#b45309",
+        "tonalRamp": ["#4a2003", "#783506", "#b45309", "#d97014", "#f09235", "#f7b672", "#fbd6ad", "#fef0dc"]
+      },
+      "contradiction-crimson": {
+        "role": "tertiary",
+        "displayName": "Contradiction Crimson",
+        "canonical": "#b91c1c",
+        "tonalRamp": ["#4a0909", "#7c1111", "#b91c1c", "#dc3535", "#eb6262", "#f49797", "#fac7c7", "#feeaea"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Launchpad H1 headline only." },
+      "headline": { "displayName": "Headline", "purpose": "Studio bar titles and empty state headers." },
+      "title": { "displayName": "Title", "purpose": "Spatial node titles and inspector headers." },
+      "body": { "displayName": "Body", "purpose": "Node summaries, source excerpts, and AI responses." },
+      "label": { "displayName": "Label / Mono", "purpose": "Citations, timestamps, edge badges, code, and shortcuts." }
+    },
+    "shadows": [
+      {
+        "name": "interactive-lift",
+        "value": "0 6px 20px -4px rgba(15, 82, 87, 0.14)",
+        "purpose": "Hovered nodes, selected cards, and floating canvas toolbars."
+      },
+      {
+        "name": "focus-ring",
+        "value": "0 0 0 2px #edf3f7, 0 0 0 4px #0f5257",
+        "purpose": "Accessible keyboard focus indicator across light surfaces."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-studio",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Snappy 150-220ms state transitions, drawer slides, and hover steps."
+      },
+      {
+        "name": "walkthrough-pan",
+        "value": "450ms cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Smooth React Flow camera pan between guided walkthrough nodes (disabled under reduced motion)."
+      }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "390px" },
+      { "name": "tablet", "value": "768px" },
+      { "name": "laptop", "value": "1024px" },
+      { "name": "desktop", "value": "1440px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Action Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary studio action button (Weave Map, Run Study Check, Export).",
+      "html": "<button class=\"ds-btn-primary\">Weave Mind Map</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 10px 18px; border-radius: 8px; background: #0f5257; color: #ffffff; font-family: 'Schibsted Grotesk', system-ui, sans-serif; font-size: 14px; font-weight: 500; border: 1px solid #0f5257; cursor: pointer; transition: background 160ms ease, transform 160ms ease; } .ds-btn-primary:hover { background: #0b3e42; transform: translateY(-1px); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px #edf3f7, 0 0 0 4px #0f5257; }"
+    },
+    {
+      "name": "Spatial Node Card",
+      "kind": "card",
+      "refersTo": "card-node",
+      "description": "4-side bordered node card with semantic mastery header and monospace source anchor pill.",
+      "html": "<div class=\"ds-node-card\" tabindex=\"0\"><div class=\"ds-node-meta\"><span class=\"ds-pill-cite\">Page 4 · Sec 2.1</span><span class=\"ds-pill-consensus\">Consensus</span></div><div class=\"ds-node-title\">Attention Scaling Laws</div><p class=\"ds-node-summary\">Compute-optimal token allocation balances parameter count and dataset size.</p></div>",
+      "css": ".ds-node-card { width: 256px; padding: 14px 16px; border-radius: 12px; background: #ffffff; color: #141414; border: 1px solid #aec3d2; font-family: 'Schibsted Grotesk', system-ui, sans-serif; transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease; } .ds-node-card:hover { border-color: #0f5257; box-shadow: 0 6px 20px -4px rgba(15, 82, 87, 0.14); transform: translateY(-1px); } .ds-node-card:focus-visible { outline: none; box-shadow: 0 0 0 2px #edf3f7, 0 0 0 4px #0f5257; } .ds-node-meta { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; } .ds-pill-cite { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 6px; background: #dbeafe; color: #1d4ed8; } .ds-pill-consensus { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 6px; background: #dcf7eb; color: #156f4c; } .ds-node-title { font-size: 15px; font-weight: 600; line-height: 1.3; margin-bottom: 4px; } .ds-node-summary { font-size: 13px; line-height: 1.45; color: #3f4756; margin: 0; }"
+    },
+    {
+      "name": "Timestamp Citation Chip",
+      "kind": "chip",
+      "refersTo": "badge-citation",
+      "description": "Clickable YouTube transcript anchor jumping the side video player.",
+      "html": "<button class=\"ds-chip-ts\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><polygon points=\"5 3 19 12 5 21 5 3\"/></svg><span>04:12</span></button>",
+      "css": ".ds-chip-ts { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 6px; border: 1px solid #9bb8fa; background: #dbeafe; color: #1d4ed8; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; cursor: pointer; transition: background 150ms ease; } .ds-chip-ts:hover { background: #c8d9fd; } .ds-chip-ts:focus-visible { outline: none; box-shadow: 0 0 0 2px #edf3f7, 0 0 0 4px #0f5257; }"
+    },
+    {
+      "name": "Studio Search & Prompt Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "High-contrast form control for topics, YouTube URLs, and Feynman recall responses.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Paste a YouTube lecture URL or topic...\" />",
+      "css": ".ds-input { width: 100%; height: 42px; padding: 10px 14px; border-radius: 8px; border: 1px solid #aec3d2; background: #ffffff; color: #141414; font-family: 'Schibsted Grotesk', system-ui, sans-serif; font-size: 14px; transition: border-color 150ms ease, box-shadow 150ms ease; } .ds-input::placeholder { color: #516c7d; } .ds-input:focus { outline: none; border-color: #0f5257; box-shadow: 0 0 0 2px #edf3f7, 0 0 0 4px #0f5257; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Architectural Drafting Studio",
+    "overview": "MindWeave rejects generic dark-neon AI templates and floating purple-glow card grids in favor of a calm, tactile drafting environment inspired by technical notebooks, cartographic atlases, and disciplined editorial workspaces. Cool putty (#c3d7e5) and pale drafting paper (#edf3f7) establish a glare-free daytime surface where dense concepts remain legible for hours, paired with an optional deep midnight blueprint mode (#0a0d14) for low-light focus.",
+    "keyCharacteristics": [
+      "Dealt cool putty and petrol-teal light palette (swap-pastels) paired with Schibsted Grotesk + JetBrains Mono",
+      "Strict zero-violet/lavender palette across all canvas levels, badges, and interactive controls",
+      "Single-elevation surfaces using crisp 1px solid borders at rest and directional offset shadow only on focus or hover",
+      "4-side directional quadrant handles (Top, Right, Bottom, Left) guaranteeing edges never route through node cards"
+    ],
+    "rules": [
+      {
+        "name": "The Zero-Violet Rule",
+        "body": "Violet, purple, and lavender hues are banned across accents, canvas nodes, gradients, and badge tints.",
+        "section": "colors"
+      },
+      {
+        "name": "The Semantic Color Job Rule",
+        "body": "Red, amber, green, and cobalt appear strictly to encode contradiction, partial recall/uniqueness, mastery/consensus, or clickable source anchors.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tinted Secondary Ink Rule",
+        "body": "Secondary labels on putty or teal surfaces derive from tinted slate (#3f4756) or petrol hue—never pure neutral #888 gray.",
+        "section": "colors"
+      },
+      {
+        "name": "The Fixed Operate Scale Rule",
+        "body": "Inside the Spatial Canvas Studio, typography uses fixed rem steps (1.125-1.2x ratio) rather than fluid clamp() scaling so sidebars and canvas cards remain stable across window splits.",
+        "section": "typography"
+      },
+      {
+        "name": "The Monospace Evidence Rule",
+        "body": "JetBrains Mono is reserved strictly for timestamps, page numbers, code blocks, Markdown/Mermaid source text, and tabular metrics—never decorative eyebrows.",
+        "section": "typography"
+      },
+      {
+        "name": "The Single-Elevation Rule",
+        "body": "Never stack a heavy blurred shadow under an already-bordered resting card; cards use 1px solid borders at rest and lift only on active state or drag.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Directional Quadrant Handle Rule",
+        "body": "Every Mind Map Node exposes invisible/subtle connection handles on all four edges (Top, Right, Bottom, Left), selected dynamically from parent-child geometry so connector curves always exit cleanly without crossing card bodies.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do declare elevation once—use crisp 1px solid #aec3d2 borders at rest and apply directional shadow only on hover, selection, or floating overlays.",
+      "Do route edges via directional Top/Right/Bottom/Left handles matching the active ELK.js layout (Balanced, Logic Tree, Radial, Flowchart).",
+      "Do pair every spatial diagram node with clickable monospace source citations (Page X / ▶ MM:SS) when grounded in uploaded PDFs or YouTube videos.",
+      "Do render every view's 5 states (loading skeletons, instructional empty, success, partial error, fatal error) using real studio copy."
+    ],
+    "donts": [
+      "Don't use violet, purple, or neon gradients anywhere in node palettes, buttons, or hero backgrounds.",
+      "Don't place one-sided vertical accent bars along the left edge of rounded cards; use full 4-side borders, subtle surface tints, or leading badges instead.",
+      "Don't place uppercase eyebrow kickers above headings or decorate idle surfaces with blurred frosted glass.",
+      "Don't use fake export toasts, disabled placeholder buttons, or generic spinners inside empty content regions."
+    ]
+  }
+}
