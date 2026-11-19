@@ -97,7 +97,15 @@
 - **Tests:** `tests/slice4-spatial-sync-export.test.ts`
 - **Verification:** `npm run typecheck` (exit `0`), `npm test` (`4 passed, 19/19 tests passed`).
 
+### Slice 6: Spatial Canvas Studio, 4-Quadrant Node Card, Rich Renderer & Studio Header
+- **Source Files (5):** `src/components/canvas/RichBlockRenderer.tsx`, `src/components/canvas/MindMapNodeCard.tsx`, `src/components/canvas/SemanticCrossEdge.tsx`, `src/components/canvas/SpatialCanvas.tsx`, `src/components/studio/StudioHeader.tsx`
+- **Verification:** `npm run typecheck` (exit `0`), `npm test` (`4 passed, 19/19 tests passed`).
+
 ### Slice 5: Design System Tokens, Root Layout, BYOK Modal, Multi-Source Tray & Studio Launchpad
 - **SOP Created:** `architecture/ui-architecture.md`
 - **Source Files (5):** `src/app/globals.css`, `src/app/layout.tsx`, `src/components/ByokSettingsModal.tsx`, `src/components/MultiSourceTray.tsx`, `src/components/StudioLaunchpad.tsx`
+- **Verification:** `npm run typecheck` (exit `0`), `npm test` (`4 passed, 19/19 tests passed`).
+
+### Slice 6: Spatial Canvas Studio, 4-Quadrant Node Card, Rich Renderer & Studio Header
+- **Source Files (5):** `src/components/canvas/RichBlockRenderer.tsx`, `src/components/canvas/MindMapNodeCard.tsx`, `src/components/canvas/SemanticCrossEdge.tsx`, `src/components/canvas/SpatialCanvas.tsx`, `src/components/studio/StudioHeader.tsx`
 - **Verification:** `npm run typecheck` (exit `0`), `npm test` (`4 passed, 19/19 tests passed`).
