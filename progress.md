@@ -96,3 +96,8 @@
 - **Source Files (5):** `src/lib/storage/workspace-db.ts`, `src/lib/layout/spatial-engine.ts`, `src/lib/sync/markdown-mermaid.ts`, `src/lib/export/exporters.ts`, `src/store/workspace-store.ts`
 - **Tests:** `tests/slice4-spatial-sync-export.test.ts`
 - **Verification:** `npm run typecheck` (exit `0`), `npm test` (`4 passed, 19/19 tests passed`).
+
+### Slice 5: Design System Tokens, Root Layout, BYOK Modal, Multi-Source Tray & Studio Launchpad
+- **SOP Created:** `architecture/ui-architecture.md`
+- **Source Files (5):** `src/app/globals.css`, `src/app/layout.tsx`, `src/components/ByokSettingsModal.tsx`, `src/components/MultiSourceTray.tsx`, `src/components/StudioLaunchpad.tsx`
+- **Verification:** `npm run typecheck` (exit `0`), `npm test` (`4 passed, 19/19 tests passed`).
