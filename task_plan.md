@@ -39,7 +39,7 @@ Skills & References Loaded: `scope/references/config-templates.md`, `tokens-bd-a
 Skills & References Loaded: `scope/references/stack-matrix.md`, `scope/references/caching-and-scaling.md`, `vercel-react-best-practices`, `systematic-debugging`, `verification-before-completion`, `design-taste-frontend`, `impeccable`
 
 - [x] **Slice 1**: Core Domain Zod Contracts, Structured Logger, Rate Limiter & Multi-Provider AI Gateway (`5` files in `src/`, SOP `architecture/security-and-ai.md`, tests)
-- [ ] **Slice 2**: Multi-Source Ingestion Engine, Flagship Demo Dataset & Health/Weave APIs (`5` files in `src/`, SOP `architecture/ingestion-and-synthesis.md`, tests)
+- [x] **Slice 2**: Multi-Source Ingestion Engine, Flagship Demo Dataset & Health/Weave APIs (`5` files in `src/`, SOP `architecture/ingestion-and-synthesis.md`, tests)
 - [ ] **Slice 3**: Cognitive Graph APIs — Expand, Node Lenses, Blind Spots, Study Grader & Grounded Chat (`5` files in `src/`, SOP `architecture/cognitive-apis.md`, tests)
 - [ ] **Slice 4**: Local-First Storage (`IndexedDB`), 4-Mode Spatial Engine (`ELK.js`), Bi-Directional Markdown/Mermaid Sync & Multi-Format Exporters (`5` files in `src/`, SOP `architecture/spatial-and-storage.md`, tests)
 - [ ] **Slice 5**: Design System Tokens (`globals.css`), Root Layout, BYOK Settings Modal, Multi-Source Tray & Studio Launchpad (`5` files in `src/`, SOP `architecture/ui-architecture.md`)

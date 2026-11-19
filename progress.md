@@ -78,3 +78,9 @@
 - **Source Files (5):** `src/lib/schemas.ts`, `src/lib/logger.ts`, `src/lib/rate-limit.ts`, `src/lib/ai/json-guard.ts`, `src/lib/ai/gateway.ts`
 - **Tests:** `tests/slice1-core-gateway.test.ts`
 - **Verification:** `npm run typecheck` (exit `0`), `npm test` (`1 passed, 6/6 tests passed`).
+
+### Slice 2: Multi-Source Ingestion Engine, Flagship Demo Dataset & Health/Weave APIs
+- **SOP Created:** `architecture/ingestion-and-synthesis.md`
+- **Source Files (5):** `src/lib/demo-workspace.ts`, `src/lib/ingestion/extractors.ts`, `src/lib/ingestion/weaver.ts`, `src/app/api/healthz/[probe]/route.ts`, `src/app/api/weave/route.ts`
+- **Tests:** `tests/slice2-ingestion-weave.test.ts`
+- **Verification:** `npm run typecheck` (exit `0`), `npm test` (`2 passed, 11/11 tests passed`).
