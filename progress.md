@@ -90,3 +90,9 @@
 - **Source Files (5):** `src/app/api/expand/route.ts`, `src/app/api/lens/route.ts`, `src/app/api/blindspots/route.ts`, `src/app/api/study/evaluate/route.ts`, `src/app/api/chat/route.ts`
 - **Tests:** `tests/slice3-cognitive-apis.test.ts`
 - **Verification:** `npm run typecheck` (exit `0`), `npm test` (`3 passed, 16/16 tests passed`).
+
+### Slice 4: Local-First Storage (`IndexedDB`), 4-Mode Spatial Engine (`ELK.js`), Sync & Exporters
+- **SOP Created:** `architecture/spatial-and-storage.md`
+- **Source Files (5):** `src/lib/storage/workspace-db.ts`, `src/lib/layout/spatial-engine.ts`, `src/lib/sync/markdown-mermaid.ts`, `src/lib/export/exporters.ts`, `src/store/workspace-store.ts`
+- **Tests:** `tests/slice4-spatial-sync-export.test.ts`
+- **Verification:** `npm run typecheck` (exit `0`), `npm test` (`4 passed, 19/19 tests passed`).
