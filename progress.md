@@ -110,3 +110,14 @@
 - **Source Files (4):** `src/components/studio/LeftSourceAndSyncDrawer.tsx`, `src/components/studio/RightCognitiveDock.tsx`, `src/components/studio/WalkthroughAndStudyBar.tsx`, `src/app/page.tsx`
 - **Tests:** `tests/slice7-integration.test.ts`
 - **Verification:** `npm run typecheck` (exit `0`), `npm test` (`5 passed, 20/20 tests passed`), `npm run build` (`next build`, exit `0`).
+
+### Phase 3 Live Browser Verification (`http://localhost:3000`, `next start -p 3000`)
+- Verified host-observed origin `http://localhost:3000` via isolated `browser` subagent across desktop (`1440x900`) and mobile (`390x844`) viewports with 0 console/page errors:
+  1. Launchpad rendered headline, Multi-Source Synthesis Tray, Hero Collage preview, and Local Workspaces section.
+  2. Flagship Demo Workspace opened 3-zone Studio (`340px` left drawer, `720px` spatial canvas with 8 nodes & 9 edges, `380px` right dock).
+  3. Layout switching (`Balanced`, `Logic Tree`, `Radial`, `Flowchart`) updated node positions cleanly.
+  4. Citation pills (`▶ 04:12` YouTube jump + `Page 3 · Sec 3.2.1`) synchronized the left Sources Drawer and embedded YouTube player.
+  5. Outline Tree and Bi-Directional Markdown/Mermaid Live Sync tabs rendered cleanly.
+  6. Right Dock tested 1-Click `ELI5 Analogy` lens, `Feynman Check` grading (`75/100 partial`), and `Blind Spots` (`Gaps (2)`).
+  7. `Active Recall` Cloze veiled all 7 child nodes (`[ ? ]`) and `Guided Walkthrough` advanced `STEP 1 OF 4` → `STEP 2 OF 4`.
+  8. Mobile (`390x844`) rendered without horizontal overflow (screenshot verified at `final_step_29.png`). Noted for Phase 4 Polish: auto-collapse side drawers on `< 1024px` studio entry/resize so the canvas leads immediately on mobile.
