@@ -24,19 +24,19 @@ import {
 
 interface RawGeneratedNode {
   topic: string;
-  summary: string;
+  summary?: string;
   segmentIds?: string[];
   agreement?: z.infer<typeof AgreementStatusSchema>;
   children?: RawGeneratedNode[];
 }
 
-const RawGeneratedNodeSchema: z.ZodType<RawGeneratedNode, z.ZodTypeDef, unknown> = z.lazy(() =>
+const RawGeneratedNodeSchema: z.ZodType<RawGeneratedNode> = z.lazy(() =>
   z.object({
     topic: z.string().min(1).max(160),
-    summary: z.string().max(1000).default(''),
-    segmentIds: z.array(z.string()).default([]),
+    summary: z.string().max(1000).optional(),
+    segmentIds: z.array(z.string()).optional(),
     agreement: AgreementStatusSchema.optional(),
-    children: z.array(RawGeneratedNodeSchema).default([]),
+    children: z.array(RawGeneratedNodeSchema).optional(),
   })
 );
 
@@ -230,7 +230,7 @@ Rules:
       id,
       parentId,
       topic: raw.topic,
-      summary: raw.summary,
+      summary: raw.summary || '',
       level,
       children,
       anchors,

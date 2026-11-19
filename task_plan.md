@@ -62,7 +62,11 @@ Skills Loaded: `impeccable` (`polish.md`, `audit.md`, `craft-floor.md`), `design
 
 ---
 
-## Phase 5: E — Execution (Deployment, CI/CD & Production Gate) — PLACEHOLDER
-*(Detailed release & rollback plan authored at Phase 5 entry after reading `references/caching-and-scaling.md`, `references/skills-and-safety.md`, and GitHub Actions CI setup.)*
-- Satisfy Production Readiness Gate (**Gate 2**) with verified terminal & `/browser` smoke test proof
-- Finalize `architecture/maintenance.md` and run `/learn`
+## Phase 5: E — Execution (Deployment, CI/CD & Production Gate) — COMPLETE
+Skills Loaded: `scope` (Phase 5, `references/caching-and-scaling.md`, `references/skills-and-safety.md`), `verification-before-completion`, `impeccable` (`reference/operate.md`)
+
+- [x] Create GitHub Actions CI pipeline (`.github/workflows/ci.yml`) running `verify:connections`, `typecheck`, `lint`, `test`, `build`, `verify:gate2`, and `npm audit --omit=dev`
+- [x] Create automated Gate 2 verification script (`tools/verify-gate2.mjs`) and register `npm run verify:gate2` in `package.json`
+- [x] Finalize operational runbook (`architecture/maintenance.md`) covering environment variables, health probes (`/api/healthz/live`, `/api/healthz/ready`), rollback procedures, secret rotation guides, and 12-layer revisit triggers
+- [x] Remediate production dependency advisories (`zod@^4.6.7`, `katex@^0.19.1`), run full Gate 2 verification suite (`verify:connections`, `typecheck`, `lint`, `test`, `build`, `verify:gate2`, `npm audit --omit=dev`), and run live `/browser` production smoke test (`/`, `/api/healthz/live`, `/api/healthz/ready`)
+- [x] Record the 13-point Gate 2 checklist with fresh terminal & browser proof in `progress.md` and commit cleanly

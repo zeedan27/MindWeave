@@ -1,0 +1,47 @@
+name: MindWeave CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  verify:
+    name: Typecheck, Lint, Test, Build & Gate 2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 20
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Phase 2 connection handshakes
+        run: npm run verify:connections
+
+      - name: Run TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run Vitest suite
+        run: npm test
+
+      - name: Run Next.js production build
+        run: npm run build
+
+      - name: Run Gate 2 production readiness checks
+        run: npm run verify:gate2
+
+      - name: Run production dependency security audit
+        run: npm audit --omit=dev

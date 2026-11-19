@@ -147,3 +147,41 @@
   - Client bundle secret scan (`.next/static`) -> `{"scannedFiles":17,"secretHits":[]}` (exit `0`)
   - Live Phase 4 browser audit (`http://localhost:3000`, `next start -p 3000`, host-verified `visited_origins: http://localhost:3000`, `blocked_origins: none`, screenshot `final_step_59.png`): confirmed mobile (`390x844`) auto-collapsed drawers, `.react-flow__controls` at `x:15, y:67` (zero collision with mobile bottom bar at `y:782.4` or Walkthrough card at `y:653.4`), hidden `.react-flow__minimap` on mobile and visible on `1440x900` desktop (`x:1223.4, y:733.4`), `[role="status"]` toast at `top: 64`, `0px` horizontal overflow, and `0` console/page errors.
 - **Phase 4 Checkpoint**: Stopped cleanly for user approval before Phase 5 (CI/CD & Gate 2).
+
+## Phase 5: E — Execution (CI/CD, Operations Runbook & Gate 2 Production Readiness) — COMPLETE
+- **Date**: Completed after loading `scope` (`Phase 5`, `references/caching-and-scaling.md`, `references/skills-and-safety.md`), `verification-before-completion`, and `impeccable` (`reference/operate.md`).
+- **Deliverables Implemented**:
+  - `.github/workflows/ci.yml`: Added GitHub Actions CI workflow running `verify:connections`, `typecheck`, `lint`, `test`, `build`, `verify:gate2`, and `npm audit --omit=dev` on `push` (`main`/`master`) and `pull_request`.
+  - `tools/verify-gate2.mjs` & `package.json` (`verify:gate2`): Added automated Gate 2 check script covering git history/tracked/static secret scanning, `.env.example` & `.gitignore` hygiene, documentation & runbook completeness, SSRF/YouTube/upload/logger security guards, and health/rate-limit contracts.
+  - `architecture/maintenance.md`: Finalized operational runbook covering `.env` + BYOK handling, `/api/healthz/live` & `/api/healthz/ready` probes & caching headers, S.C.O.P.E. Deploy Rule & rollback procedure, secret rotation steps, and 12-layer revisit triggers.
+  - **Dependency Vulnerability Remediation**: Upgraded `zod` (`^3.24.2` -> `^4.6.7`, resolving high advisory `GHSA-mrhx-c7xc-m3w5`) and `katex` (`^0.16.21` -> `^0.19.1`, resolving low advisory `GHSA-238p-pmpm-9mq7`) across `package.json`, `src/lib/schemas.ts`, `src/lib/ai/json-guard.ts`, `src/lib/ingestion/weaver.ts`, and explicit `trust: false` in `src/components/canvas/RichBlockRenderer.tsx`.
+  - Updated `AGENTS.md` (`Current Phase: 5`) and `task_plan.md` Phase 5 checklist.
+- **Verified Terminal & Security Suite (`task-601`, exit `0`)**:
+  - `npm --prefix "d:\Projects\MindWeave" run verify:connections` -> exit `0` (`ALL_PHASE_2_HANDSHAKES_PASSED`)
+  - `npm --prefix "d:\Projects\MindWeave" run typecheck` -> exit `0` (`tsc --noEmit`)
+  - `npm --prefix "d:\Projects\MindWeave" run lint` -> exit `0` (`eslint .`, 0 errors / 0 warnings)
+  - `npm --prefix "d:\Projects\MindWeave" test` -> exit `0` (`Test Files 5 passed (5)`, `Tests 20 passed (20)` via Vitest)
+  - `npm --prefix "d:\Projects\MindWeave" run build` -> exit `0` (Next.js `16.4.6` Turbopack; `/` static + 7 dynamic API routes)
+  - `npm --prefix "d:\Projects\MindWeave" run verify:gate2` -> exit `0` (`[PASS] 1..5`, `68 tracked files, git log -20, 17 static assets`, `ALL_GATE_2_CHECKS_PASSED`)
+  - `npm --prefix "d:\Projects\MindWeave" audit --omit=dev` -> exit `0` (`found 0 vulnerabilities`)
+- **Live Browser Gate 2 Production Smoke Test (`http://localhost:3000`, `next start -p 3000`, host-verified `visited_origins: http://localhost:3000`, `blocked_origins: none`, screenshot `final_step_71.png`)**:
+  - `/api/healthz/live` -> HTTP `200`, `Cache-Control: private, no-store`, body `{"ok":true,"status":"live","uptimeSec":25}`.
+  - `/api/healthz/ready` -> HTTP `200`, `Cache-Control: private, no-store`, body `{"ok":true,"status":"ready","aiServerConfigured":false,"provider":null,"demoAvailable":true}`.
+  - Launchpad & Flagship Demo Studio (`1440x900`) -> loaded 3-zone Studio (`8` spatial nodes, left Sources drawer, right Cognitive Inspector dock), rendered `Code / Math / Flow` KaTeX `0.19.1` equation on `Scaled Dot-Product Attention`, with `0` console/page errors.
+
+### Production Readiness Gate (Gate 2) — Final Status Table (Tier T0 Local-First)
+| # | Gate 2 Criterion | Status | Evidence / Rationale |
+|---|---|---|---|
+| 1 | Local & CI builds, typechecks, and tests pass | Passed (Local Verified; CI Committed) | `verify:connections`, `typecheck`, `lint`, `test` (`5/5` files, `20/20` tests), `build`, and `verify:gate2` passed locally (`task-601`, exit `0`); identical steps configured in `.github/workflows/ci.yml` for GitHub push/PR. |
+| 2 | Secret scan passes; `.env.example` complete | Passed | `verify:gate2` scanned 68 tracked files, `git log -20`, and 17 `.next/static` assets with 0 secret matches; `.env.example` & `.gitignore` verified. |
+| 3 | Authentication & negative access tests verified | Verified at T0 Scope (Server Multi-User Deferred) | Tier T0 has zero user login; SSRF custom-baseUrl rejections (`http://169.254.169.254/...`), invalid payloads (`VALIDATION_ERROR`), and missing keys checked in Vitest + `verify:gate2`. Server auth triggers at T1. |
+| 4 | Row-Level Security (RLS) verified | Deferred (T1+) | Local-first browser `IndexedDB` (`mindweave_db`) per `findings.md`; Postgres RLS mandatory upon T1 multi-user DB adoption. |
+| 5 | Rate limiting active on sensitive/public endpoints | Passed | Sliding-window `checkRateLimit()` (`30 req/min`, HTTP `429` + `retryAfterSec`) verified across `tests/slice1-core-gateway.test.ts` and `tests/slice3-cognitive-apis.test.ts`. |
+| 6 | Database migrations & backup verified (T1+) | Deferred (T1+) / Local Export Ready | T0 client-side persistence backed by `.mindweave.json` export/import + `src/app/error.tsx` emergency JSON backup; SQL migrations trigger at T1. |
+| 7 | Dependency security audit clean | Passed | `npm audit --omit=dev` exited `0` (`found 0 vulnerabilities`) after upgrading `zod@^4.6.7` and `katex@^0.19.1`. |
+| 8 | Structured logging & error tracker verified | Passed (JSON Logger Active; External SaaS Deferred T1+) | `src/lib/logger.ts` redacted JSON logs observed in Vitest (`weave.completed`) + Fatal Error client boundary `src/app/error.tsx`. |
+| 9 | Health and readiness endpoints verified | Passed | Live server `/api/healthz/live` (`{"ok":true,"status":"live",...}`) and `/api/healthz/ready` (`{"ok":true,"status":"ready",...}`) returned HTTP `200` with `Cache-Control: private, no-store`. |
+| 10 | Documented rollback procedure verified | Passed | Git revert + rebuild + `verify:gate2` + `.mindweave.json` recovery documented in `architecture/maintenance.md`. |
+| 11 | Cost caps and budget alerts set (T1+) | Deferred (T1+) | Users supply own BYOK keys or server `.env` key bounded by 30 req/min rate limit & char caps; hosted billing caps trigger at T1. |
+| 12 | Staging / production smoke test passed via `/browser` | Passed | Verified live on local production build (`next start -p 3000`, `http://localhost:3000`) via isolated `browser` subagent (`final_step_71.png`, 0 console/page errors). |
+| 13 | Deployment follows S.C.O.P.E. Deploy Rule | Passed (Committed Local Payload; No Live Cloud Push Unasked) | Ready for Git-connected push/deploy from clean tree; zero folder-upload tools used; production runbook finalized in `architecture/maintenance.md`. |

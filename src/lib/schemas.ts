@@ -93,7 +93,7 @@ export interface MindMapNode {
   isClozeMasked?: boolean;
 }
 
-export const MindMapNodeSchema: z.ZodType<MindMapNode, z.ZodTypeDef, unknown> = z.lazy(() =>
+export const MindMapNodeSchema: z.ZodType<MindMapNode> = z.lazy(() =>
   z.object({
     id: z.string().min(1),
     parentId: z.string().nullable(),

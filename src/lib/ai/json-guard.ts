@@ -58,7 +58,7 @@ export function extractJsonSubstring(raw: string): string {
 
 export function extractAndValidateJson<T>(
   rawText: string,
-  schema: z.ZodType<T, z.ZodTypeDef, unknown>
+  schema: z.ZodType<T>
 ): { ok: true; data: T } | { ok: false; error: string } {
   const jsonText = extractJsonSubstring(rawText);
 

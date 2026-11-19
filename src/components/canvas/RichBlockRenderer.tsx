@@ -43,6 +43,7 @@ export default function RichBlockRenderer({ lens, compact = false }: RichBlockRe
         throwOnError: false,
         displayMode: !compact,
         strict: false,
+        trust: false,
       });
     } catch {
       return null;
