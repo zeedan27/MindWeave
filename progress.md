@@ -97,10 +97,6 @@
 - **Tests:** `tests/slice4-spatial-sync-export.test.ts`
 - **Verification:** `npm run typecheck` (exit `0`), `npm test` (`4 passed, 19/19 tests passed`).
 
-### Slice 6: Spatial Canvas Studio, 4-Quadrant Node Card, Rich Renderer & Studio Header
-- **Source Files (5):** `src/components/canvas/RichBlockRenderer.tsx`, `src/components/canvas/MindMapNodeCard.tsx`, `src/components/canvas/SemanticCrossEdge.tsx`, `src/components/canvas/SpatialCanvas.tsx`, `src/components/studio/StudioHeader.tsx`
-- **Verification:** `npm run typecheck` (exit `0`), `npm test` (`4 passed, 19/19 tests passed`).
-
 ### Slice 5: Design System Tokens, Root Layout, BYOK Modal, Multi-Source Tray & Studio Launchpad
 - **SOP Created:** `architecture/ui-architecture.md`
 - **Source Files (5):** `src/app/globals.css`, `src/app/layout.tsx`, `src/components/ByokSettingsModal.tsx`, `src/components/MultiSourceTray.tsx`, `src/components/StudioLaunchpad.tsx`
@@ -109,3 +105,8 @@
 ### Slice 6: Spatial Canvas Studio, 4-Quadrant Node Card, Rich Renderer & Studio Header
 - **Source Files (5):** `src/components/canvas/RichBlockRenderer.tsx`, `src/components/canvas/MindMapNodeCard.tsx`, `src/components/canvas/SemanticCrossEdge.tsx`, `src/components/canvas/SpatialCanvas.tsx`, `src/components/studio/StudioHeader.tsx`
 - **Verification:** `npm run typecheck` (exit `0`), `npm test` (`4 passed, 19/19 tests passed`).
+
+### Slice 7: Left Source/Outline/Sync Drawer, Right Cognitive/Feynman Dock, Walkthrough HUD & Main Page
+- **Source Files (4):** `src/components/studio/LeftSourceAndSyncDrawer.tsx`, `src/components/studio/RightCognitiveDock.tsx`, `src/components/studio/WalkthroughAndStudyBar.tsx`, `src/app/page.tsx`
+- **Tests:** `tests/slice7-integration.test.ts`
+- **Verification:** `npm run typecheck` (exit `0`), `npm test` (`5 passed, 20/20 tests passed`), `npm run build` (`next build`, exit `0`).
