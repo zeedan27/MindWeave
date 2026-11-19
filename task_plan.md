@@ -35,18 +35,17 @@ Skills & References Loaded: `scope/references/config-templates.md`, `tokens-bd-a
 
 ---
 
-## Phase 3: O — Organization (The 3-Layer Build) — PLACEHOLDER
-*(Detailed vertical slices `<= 5` code files per slice authored at Phase 3 entry after reading `references/stack-matrix.md`, `references/caching-and-scaling.md`, `vercel-react-best-practices`, `systematic-debugging`, and `verification-before-completion`.)*
-- Candidate Vertical Slice Domains (to be detailed & sequenced at Phase 3 entry):
-  1. Core Domain Zod Contracts, Multi-Provider AI Gateway & Rate Limiter
-  2. Multi-Source Ingestion Pipeline (Topic, PDF/TXT/MD chunking, YouTube Transcript/Metadata) & `/api/weave`
-  3. Studio Launchpad UI (Hero Collage + Multi-Source Synthesis Tray + BYOK Settings Modal + Local Library)
-  4. Spatial Canvas Core (`@xyflow/react` + `ELK.js` 4-mode layout engine + Directional 4-side Handles)
-  5. Source Anchors Drawer (PDF Excerpt Highlighting + Mini YouTube Timestamp Player)
-  6. Node Expansion (`/api/expand`), Contextual Lenses (`/api/lens`: ELI5, Critic, First-Principles, Code/KaTeX/Mermaid) & Semantic Cross-Links + Blind Spot Detector (`/api/blindspots`)
-  7. Active Learning Suite (Cloze Recall Study Mode, Grounded Chat + Feynman Grader `/api/study/evaluate`, Guided Walkthrough Tour)
-  8. Bi-Directional Markdown / Mermaid Live Sync & Real High-Res Exports (SVG, 4x PNG, Markdown, Obsidian `.canvas`, Anki `.csv`, `.mindweave.json`, URL-hash Share)
-- **Phase 3 Checkpoint (Hard Stop)**
+## Phase 3: O — Organization (The 3-Layer Build) — IN PROGRESS
+Skills & References Loaded: `scope/references/stack-matrix.md`, `scope/references/caching-and-scaling.md`, `vercel-react-best-practices`, `systematic-debugging`, `verification-before-completion`, `design-taste-frontend`, `impeccable`
+
+- [x] **Slice 1**: Core Domain Zod Contracts, Structured Logger, Rate Limiter & Multi-Provider AI Gateway (`5` files in `src/`, SOP `architecture/security-and-ai.md`, tests)
+- [ ] **Slice 2**: Multi-Source Ingestion Engine, Flagship Demo Dataset & Health/Weave APIs (`5` files in `src/`, SOP `architecture/ingestion-and-synthesis.md`, tests)
+- [ ] **Slice 3**: Cognitive Graph APIs — Expand, Node Lenses, Blind Spots, Study Grader & Grounded Chat (`5` files in `src/`, SOP `architecture/cognitive-apis.md`, tests)
+- [ ] **Slice 4**: Local-First Storage (`IndexedDB`), 4-Mode Spatial Engine (`ELK.js`), Bi-Directional Markdown/Mermaid Sync & Multi-Format Exporters (`5` files in `src/`, SOP `architecture/spatial-and-storage.md`, tests)
+- [ ] **Slice 5**: Design System Tokens (`globals.css`), Root Layout, BYOK Settings Modal, Multi-Source Tray & Studio Launchpad (`5` files in `src/`, SOP `architecture/ui-architecture.md`)
+- [ ] **Slice 6**: Spatial Canvas Studio, 4-Quadrant Node Card, KaTeX/Code/Mermaid Renderer, Semantic Cross-Edge & Studio Header (`5` files in `src/`)
+- [ ] **Slice 7**: Left Source/Outline/Sync Drawer, Right Cognitive/Feynman Dock, Walkthrough HUD, Main Page (`4` files in `src/`) & Integration Tests
+- [ ] **Live Browser Verification (`/browser`) & Phase 3 Checkpoint (Hard Stop)**
 
 ---
 

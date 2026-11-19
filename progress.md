@@ -70,3 +70,11 @@
      ALL_PHASE_2_HANDSHAKES_PASSED
      ```
    - Command: `npm --prefix "d:\Projects\MindWeave" run typecheck` (`tsc --noEmit`, exit code `0`, 0 errors).
+
+## 2026-11-20 — Phase 3: Organization (3-Layer Vertical Slices)
+
+### Slice 1: Core Domain Contracts, Logger, Rate Limiter & Multi-Provider AI Gateway
+- **SOP Created:** `architecture/security-and-ai.md`
+- **Source Files (5):** `src/lib/schemas.ts`, `src/lib/logger.ts`, `src/lib/rate-limit.ts`, `src/lib/ai/json-guard.ts`, `src/lib/ai/gateway.ts`
+- **Tests:** `tests/slice1-core-gateway.test.ts`
+- **Verification:** `npm run typecheck` (exit `0`), `npm test` (`1 passed, 6/6 tests passed`).
