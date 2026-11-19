@@ -140,8 +140,9 @@ function SpatialCanvasInner({ onLayoutReady }: SpatialCanvasInnerProps) {
           size={1.2}
           color="var(--mw-border)"
         />
-        <Controls showInteractive={false} />
+        <Controls position="top-left" showInteractive={false} />
         <MiniMap
+          className="!hidden sm:!block"
           pannable
           zoomable
           nodeColor={(n) =>

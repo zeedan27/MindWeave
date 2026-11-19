@@ -189,7 +189,7 @@ export default function WalkthroughAndStudyBar() {
 
   return (
     <div
-      className="lg:hidden absolute bottom-3 left-3 right-14 z-10 rounded-xl border p-2 flex flex-wrap items-center justify-between gap-2"
+      className="lg:hidden absolute bottom-3 left-3 right-3 z-10 rounded-xl border p-2 flex flex-wrap items-center justify-between gap-2"
       style={{
         backgroundColor: 'var(--mw-card)',
         borderColor: 'var(--mw-border)',

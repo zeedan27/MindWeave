@@ -122,6 +122,10 @@ function removeNodeFromTree(root: MindMapNode, nodeId: string): MindMapNode {
   };
 }
 
+function isCompactViewport(): boolean {
+  return typeof window !== 'undefined' && window.innerWidth < 1024;
+}
+
 function buildApiHeaders(byok: RuntimeAIConfig, isJson = true): HeadersInit {
   const headers: Record<string, string> = {};
   if (isJson) headers['Content-Type'] = 'application/json';
@@ -265,11 +269,14 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
 
       if (typeof window !== 'undefined' && window.location.hash.startsWith('#mw=')) {
         const shared = decodeWorkspaceHash(window.location.hash);
+        const compact = isCompactViewport();
         if (shared) {
           set({
             workspace: shared,
             view: 'studio',
             selectedNodeId: shared.rootNode.id,
+            leftDrawerOpen: !compact,
+            rightDrawerOpen: !compact,
             toastMessage: `Loaded shared workspace "${shared.title}"`,
           });
           await saveWorkspaceToStorage(shared);
@@ -308,6 +315,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
 
     loadDemoWorkspace: async () => {
       const demo = createFlagshipDemoWorkspace();
+      const compact = isCompactViewport();
       set({
         workspace: demo,
         view: 'studio',
@@ -316,9 +324,9 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
         selectedNodeId: 'n_qkv',
         collapsedIds: new Set<string>(),
         revealedClozeIds: new Set<string>(),
-        leftDrawerOpen: true,
+        leftDrawerOpen: !compact,
         leftTab: 'sources',
-        rightDrawerOpen: true,
+        rightDrawerOpen: !compact,
         rightTab: 'inspector',
         errorMessage: null,
         toastMessage: 'Loaded Interactive Flagship Demo Workspace',
@@ -328,7 +336,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
       set({ savedWorkspaces: saved });
     },
 
-    openSavedWorkspace: (ws) =>
+    openSavedWorkspace: (ws) => {
+      const compact = isCompactViewport();
       set({
         workspace: ws,
         view: 'studio',
@@ -337,8 +346,11 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
         selectedNodeId: ws.rootNode.id,
         collapsedIds: new Set<string>(),
         revealedClozeIds: new Set<string>(),
+        leftDrawerOpen: !compact,
+        rightDrawerOpen: !compact,
         errorMessage: null,
-      }),
+      });
+    },
 
     deleteSavedWorkspace: async (id) => {
       await deleteWorkspaceFromStorage(id);
@@ -357,11 +369,14 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
         }
         await saveWorkspaceToStorage(parsed.data);
         const saved = await listSavedWorkspaces();
+        const compact = isCompactViewport();
         set({
           workspace: parsed.data,
           savedWorkspaces: saved,
           view: 'studio',
           selectedNodeId: parsed.data.rootNode.id,
+          leftDrawerOpen: !compact,
+          rightDrawerOpen: !compact,
           toastMessage: `Imported "${parsed.data.title}"`,
         });
         return true;
@@ -411,6 +426,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
 
         const ws = json.data.workspace as MindMapWorkspace;
         persistCurrent(ws);
+        const compact = isCompactViewport();
         set({
           view: 'studio',
           studyMode: 'explore',
@@ -418,9 +434,9 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
           selectedNodeId: ws.rootNode.id,
           collapsedIds: new Set<string>(),
           revealedClozeIds: new Set<string>(),
-          leftDrawerOpen: true,
+          leftDrawerOpen: !compact,
           leftTab: 'sources',
-          rightDrawerOpen: true,
+          rightDrawerOpen: !compact,
           rightTab: 'inspector',
           toastMessage: json.data.usedFallback
             ? 'Woven in offline grounded mode (configure an AI key for deep LLM synthesis)'
@@ -465,9 +481,17 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
     },
 
     setLeftDrawer: (open, tab) =>
-      set((s) => ({ leftDrawerOpen: open, leftTab: tab || s.leftTab })),
+      set((s) => ({
+        leftDrawerOpen: open,
+        leftTab: tab || s.leftTab,
+        ...(open && isCompactViewport() ? { rightDrawerOpen: false } : {}),
+      })),
     setRightDrawer: (open, tab) =>
-      set((s) => ({ rightDrawerOpen: open, rightTab: tab || s.rightTab })),
+      set((s) => ({
+        rightDrawerOpen: open,
+        rightTab: tab || s.rightTab,
+        ...(open && isCompactViewport() ? { leftDrawerOpen: false } : {}),
+      })),
     setChatMode: (mode) => set({ chatMode: mode }),
 
     selectNode: (nodeId) => set({ selectedNodeId: nodeId }),
@@ -493,6 +517,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
       set({
         leftDrawerOpen: true,
         leftTab: 'sources',
+        ...(isCompactViewport() ? { rightDrawerOpen: false } : {}),
         activeSourceJump: {
           sourceId: anchor.sourceId,
           segmentId: anchor.segmentId,

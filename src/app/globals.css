@@ -110,6 +110,12 @@ body {
   box-shadow: var(--mw-focus-ring);
 }
 
+.font-mono,
+code,
+pre {
+  font-variant-numeric: tabular-nums;
+}
+
 .mw-scroll::-webkit-scrollbar {
   width: 7px;
   height: 7px;
@@ -171,12 +177,13 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  html,
+  body,
+  * {
     scroll-behavior: auto !important;
+  }
+
+  .mw-card-interactive:hover {
+    transform: none !important;
   }
 }

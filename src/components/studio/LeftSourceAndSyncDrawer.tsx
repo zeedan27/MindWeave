@@ -30,46 +30,39 @@ export default function LeftSourceAndSyncDrawer() {
     syncFromMermaid,
   } = useWorkspaceStore();
 
-  const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
-  const [ytSeekSec, setYtSeekSec] = useState<number>(0);
+  const [manualSelection, setManualSelection] = useState<{
+    sourceId: string;
+    seekSec: number;
+    afterNonce: number;
+  } | null>(null);
   const [outlineFilter, setOutlineFilter] = useState('');
   const [syncFormat, setSyncFormat] = useState<'markdown' | 'mermaid'>('markdown');
-  const [editorText, setEditorText] = useState('');
+  const [editorDraft, setEditorDraft] = useState<{ syncKey: string; text: string } | null>(null);
   const segmentRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
+  // Scroll highlighted source segment into view (external DOM effect only)
   useEffect(() => {
-    if (!workspace) return;
-    if (!selectedSourceId || !workspace.sources.some((s) => s.id === selectedSourceId)) {
-      setSelectedSourceId(workspace.sources[0]?.id || null);
-    }
-  }, [workspace, selectedSourceId]);
-
-  // Respond to clicking a PDF Page or YouTube Timestamp pill on any canvas node
-  useEffect(() => {
-    if (!activeSourceJump) return;
-    setSelectedSourceId(activeSourceJump.sourceId);
-    if (activeSourceJump.timestampSec !== undefined) {
-      setYtSeekSec(Math.floor(activeSourceJump.timestampSec));
-    }
-    if (activeSourceJump.segmentId) {
-      setTimeout(() => {
-        segmentRefs.current[activeSourceJump.segmentId!]?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-        });
-      }, 100);
-    }
+    if (!activeSourceJump?.segmentId) return;
+    const targetSegId = activeSourceJump.segmentId;
+    const timer = setTimeout(() => {
+      segmentRefs.current[targetSegId]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      });
+    }, 100);
+    return () => clearTimeout(timer);
   }, [activeSourceJump]);
 
-  // Keep sync editor synchronized with workspace changes
-  useEffect(() => {
-    if (!workspace) return;
-    if (syncFormat === 'markdown') {
-      setEditorText(workspaceToMarkdown(workspace.rootNode));
-    } else {
-      setEditorText(workspaceToMermaid(workspace.rootNode, workspace.crossLinks));
-    }
+  const syncKey = workspace ? `${workspace.id}:${workspace.updatedAt}:${syncFormat}` : '';
+  const canonicalSyncText = useMemo(() => {
+    if (!workspace) return '';
+    return syncFormat === 'markdown'
+      ? workspaceToMarkdown(workspace.rootNode)
+      : workspaceToMermaid(workspace.rootNode, workspace.crossLinks);
   }, [workspace, syncFormat]);
+
+  const editorText =
+    editorDraft && editorDraft.syncKey === syncKey ? editorDraft.text : canonicalSyncText;
 
   const outlineItems = useMemo(() => {
     if (!workspace) return [];
@@ -83,8 +76,20 @@ export default function LeftSourceAndSyncDrawer() {
 
   if (!leftDrawerOpen || !workspace) return null;
 
+  const jumpActive =
+    Boolean(activeSourceJump) &&
+    (!manualSelection || (activeSourceJump?.nonce ?? 0) > manualSelection.afterNonce);
+  const effectiveSourceId = jumpActive
+    ? activeSourceJump!.sourceId
+    : manualSelection?.sourceId || workspace.sources[0]?.id || null;
   const activeSource =
-    workspace.sources.find((s) => s.id === selectedSourceId) || workspace.sources[0];
+    workspace.sources.find((s) => s.id === effectiveSourceId) || workspace.sources[0];
+  const ytSeekSec =
+    jumpActive && activeSourceJump?.timestampSec !== undefined
+      ? Math.floor(activeSourceJump.timestampSec)
+      : manualSelection?.sourceId === activeSource?.id
+        ? manualSelection?.seekSec ?? 0
+        : 0;
   const ytVideoId = activeSource?.url ? extractYouTubeId(activeSource.url) : null;
 
   const handleApplySync = () => {
@@ -158,8 +163,11 @@ export default function LeftSourceAndSyncDrawer() {
                   key={src.id}
                   type="button"
                   onClick={() => {
-                    setSelectedSourceId(src.id);
-                    setYtSeekSec(0);
+                    setManualSelection({
+                      sourceId: src.id,
+                      seekSec: 0,
+                      afterNonce: activeSourceJump?.nonce ?? 0,
+                    });
                   }}
                   className="px-2.5 py-1 rounded-md border text-xs font-medium inline-flex items-center gap-1.5 max-w-full"
                   style={{
@@ -225,7 +233,13 @@ export default function LeftSourceAndSyncDrawer() {
                       {seg.startSec !== undefined ? (
                         <button
                           type="button"
-                          onClick={() => setYtSeekSec(seg.startSec || 0)}
+                          onClick={() =>
+                            setManualSelection({
+                              sourceId: activeSource.id,
+                              seekSec: seg.startSec || 0,
+                              afterNonce: activeSourceJump?.nonce ?? 0,
+                            })
+                          }
                           className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-mono text-[10px] font-semibold"
                           style={{
                             backgroundColor: 'var(--mw-cite-bg)',
@@ -377,7 +391,7 @@ export default function LeftSourceAndSyncDrawer() {
 
           <textarea
             value={editorText}
-            onChange={(e) => setEditorText(e.target.value)}
+            onChange={(e) => setEditorDraft({ syncKey, text: e.target.value })}
             aria-label={`Bi-directional ${syncFormat} editor`}
             className="flex-1 w-full p-3 rounded-lg border font-mono text-xs leading-relaxed resize-none mw-scroll"
             style={{

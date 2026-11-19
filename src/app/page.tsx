@@ -1,15 +1,36 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import ByokSettingsModal from '@/components/ByokSettingsModal';
 import StudioLaunchpad from '@/components/StudioLaunchpad';
-import SpatialCanvas from '@/components/canvas/SpatialCanvas';
 import LeftSourceAndSyncDrawer from '@/components/studio/LeftSourceAndSyncDrawer';
 import RightCognitiveDock from '@/components/studio/RightCognitiveDock';
 import StudioHeader from '@/components/studio/StudioHeader';
 import WalkthroughAndStudyBar from '@/components/studio/WalkthroughAndStudyBar';
 import type { SpatialFlowEdge, SpatialFlowNode } from '@/lib/layout/spatial-engine';
 import { useWorkspaceStore } from '@/store/workspace-store';
+
+const SpatialCanvas = dynamic(() => import('@/components/canvas/SpatialCanvas'), {
+  ssr: false,
+  loading: () => (
+    <div
+      className="w-full h-full flex items-center justify-center p-6"
+      style={{ backgroundColor: 'var(--mw-bg)' }}
+      role="status"
+      aria-label="Loading spatial canvas"
+    >
+      <div
+        className="w-full max-w-md rounded-xl border p-5 space-y-3 animate-pulse"
+        style={{ backgroundColor: 'var(--mw-card)', borderColor: 'var(--mw-border)' }}
+      >
+        <div className="h-4 w-44 rounded" style={{ backgroundColor: 'var(--mw-panel)' }} />
+        <div className="h-3 w-full rounded" style={{ backgroundColor: 'var(--mw-bg)' }} />
+        <div className="h-3 w-4/5 rounded" style={{ backgroundColor: 'var(--mw-bg)' }} />
+      </div>
+    </div>
+  ),
+});
 
 export default function HomePage() {
   const {
@@ -87,7 +108,7 @@ export default function HomePage() {
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-4 right-4 z-50 px-4 py-2.5 rounded-xl border text-xs font-medium"
+          className="fixed top-16 left-1/2 -translate-x-1/2 max-w-[calc(100vw-2rem)] z-50 px-4 py-2 rounded-xl border text-xs font-medium text-center"
           style={{
             backgroundColor: 'var(--mw-ink)',
             color: 'var(--mw-card)',

@@ -68,12 +68,7 @@ export default function StudioHeader({ flowNodes, flowEdges }: StudioHeaderProps
   const [exportOpen, setExportOpen] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState('');
-  const [isDark, setIsDark] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setIsDark(document.documentElement.classList.contains('dark'));
-  }, []);
 
   useEffect(() => {
     if (!exportOpen) return;
@@ -89,10 +84,9 @@ export default function StudioHeader({ flowNodes, flowEdges }: StudioHeaderProps
   if (!workspace) return null;
 
   const toggleTheme = () => {
-    const next = !isDark;
-    document.documentElement.classList.toggle('dark', next);
-    localStorage.setItem('mindweave_theme_v1', next ? 'dark' : 'light');
-    setIsDark(next);
+    const nextDark = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', nextDark);
+    localStorage.setItem('mindweave_theme_v1', nextDark ? 'dark' : 'light');
   };
 
   const slug =
@@ -435,9 +429,10 @@ export default function StudioHeader({ flowNodes, flowEdges }: StudioHeaderProps
           onClick={toggleTheme}
           className="w-8 h-8 rounded-lg border flex items-center justify-center"
           style={{ borderColor: 'var(--mw-border)', color: 'var(--mw-muted)' }}
-          aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+          aria-label="Toggle color theme"
         >
-          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          <Sun className="w-4 h-4 hidden dark:block" />
+          <Moon className="w-4 h-4 block dark:hidden" />
         </button>
 
         <button

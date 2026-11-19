@@ -66,21 +66,6 @@ const PROVIDER_OPTIONS: Array<{
 export default function ByokSettingsModal() {
   const { byokModalOpen, setByokModalOpen, byokConfig, updateByokConfig } = useWorkspaceStore();
 
-  const [provider, setProvider] = useState<AIProviderId>(byokConfig.provider);
-  const [apiKey, setApiKey] = useState(byokConfig.apiKey || '');
-  const [baseUrl, setBaseUrl] = useState(byokConfig.baseUrl || '');
-  const [model, setModel] = useState(byokConfig.model || '');
-  const [showKey, setShowKey] = useState(false);
-
-  useEffect(() => {
-    if (byokModalOpen) {
-      setProvider(byokConfig.provider);
-      setApiKey(byokConfig.apiKey || '');
-      setBaseUrl(byokConfig.baseUrl || '');
-      setModel(byokConfig.model || '');
-    }
-  }, [byokModalOpen, byokConfig]);
-
   useEffect(() => {
     if (!byokModalOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -91,6 +76,42 @@ export default function ByokSettingsModal() {
   }, [byokModalOpen, setByokModalOpen]);
 
   if (!byokModalOpen) return null;
+
+  const formKey = `${byokConfig.provider}:${byokConfig.model || ''}:${byokConfig.baseUrl || ''}:${byokConfig.apiKey ? '1' : '0'}`;
+
+  return (
+    <ByokSettingsForm
+      key={formKey}
+      initialConfig={byokConfig}
+      onClose={() => setByokModalOpen(false)}
+      onSave={(next) => {
+        updateByokConfig(next);
+        setByokModalOpen(false);
+      }}
+      onClear={() => {
+        updateByokConfig({ provider: 'openai', explicitlyConfigured: false });
+        setByokModalOpen(false);
+      }}
+    />
+  );
+}
+
+function ByokSettingsForm({
+  initialConfig,
+  onClose,
+  onSave,
+  onClear,
+}: {
+  initialConfig: RuntimeAIConfig;
+  onClose: () => void;
+  onSave: (config: RuntimeAIConfig) => void;
+  onClear: () => void;
+}) {
+  const [provider, setProvider] = useState<AIProviderId>(initialConfig.provider);
+  const [apiKey, setApiKey] = useState(initialConfig.apiKey || '');
+  const [baseUrl, setBaseUrl] = useState(initialConfig.baseUrl || '');
+  const [model, setModel] = useState(initialConfig.model || '');
+  const [showKey, setShowKey] = useState(false);
 
   const activeMeta = PROVIDER_OPTIONS.find((p) => p.id === provider) || PROVIDER_OPTIONS[0];
 
@@ -103,13 +124,7 @@ export default function ByokSettingsModal() {
       model: model.trim() || undefined,
       explicitlyConfigured: Boolean(apiKey.trim() || provider === 'ollama'),
     };
-    updateByokConfig(nextConfig);
-    setByokModalOpen(false);
-  };
-
-  const handleClear = () => {
-    updateByokConfig({ provider: 'openai', explicitlyConfigured: false });
-    setByokModalOpen(false);
+    onSave(nextConfig);
   };
 
   return (
@@ -118,7 +133,7 @@ export default function ByokSettingsModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="byok-modal-title"
-      onClick={() => setByokModalOpen(false)}
+      onClick={onClose}
     >
       <div
         className="w-full max-w-lg rounded-xl border p-6"
@@ -152,7 +167,7 @@ export default function ByokSettingsModal() {
           </div>
           <button
             type="button"
-            onClick={() => setByokModalOpen(false)}
+            onClick={onClose}
             className="w-9 h-9 rounded-lg flex items-center justify-center border hover:opacity-80"
             style={{ borderColor: 'var(--mw-border)', color: 'var(--mw-muted)' }}
             aria-label="Close AI settings"
@@ -281,7 +296,7 @@ export default function ByokSettingsModal() {
           <div className="flex items-center justify-between pt-2">
             <button
               type="button"
-              onClick={handleClear}
+              onClick={onClear}
               className="px-3 h-10 rounded-lg border text-xs font-medium hover:opacity-80"
               style={{ borderColor: 'var(--mw-border)', color: 'var(--mw-muted)' }}
             >
@@ -290,7 +305,7 @@ export default function ByokSettingsModal() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setByokModalOpen(false)}
+                onClick={onClose}
                 className="px-4 h-10 rounded-lg border text-sm font-medium"
                 style={{ borderColor: 'var(--mw-border)', color: 'var(--mw-ink)' }}
               >

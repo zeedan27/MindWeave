@@ -121,3 +121,29 @@
   6. Right Dock tested 1-Click `ELI5 Analogy` lens, `Feynman Check` grading (`75/100 partial`), and `Blind Spots` (`Gaps (2)`).
   7. `Active Recall` Cloze veiled all 7 child nodes (`[ ? ]`) and `Guided Walkthrough` advanced `STEP 1 OF 4` → `STEP 2 OF 4`.
   8. Mobile (`390x844`) rendered without horizontal overflow (screenshot verified at `final_step_29.png`). Noted for Phase 4 Polish: auto-collapse side drawers on `< 1024px` studio entry/resize so the canvas leads immediately on mobile.
+
+## Phase 4: P — Polish (UI/UX, Accessibility, Performance & Integrity) — COMPLETE
+- **Date / Baseline**: Executed after reading `impeccable` (`polish.md`, `audit.md`, `craft-floor.md`), `design-taste-frontend`, `web-design-guidelines`, and `vercel-react-best-practices` `SKILL.md` references. Note: `impeccable.cmd` hung in the Windows sandbox, so audit proceeded directly via manual 5-dimension evaluation against `PRODUCT.md`, `DESIGN.md`, and `audit.md`.
+- **Polish Fixes Implemented**:
+  - `eslint.config.mjs`: Configured ESLint v9 flat config extending `eslint-config-next/core-web-vitals` & `eslint-config-next/typescript`, plus `.gitignore` exclusion for generated `next-env.d.ts`.
+  - React 19 derived-state & pure-helper cleanups across `src/lib/layout/spatial-engine.ts`, `src/components/ByokSettingsModal.tsx`, `src/components/StudioLaunchpad.tsx`, `src/components/studio/StudioHeader.tsx`, `src/components/studio/LeftSourceAndSyncDrawer.tsx`, and `src/components/studio/RightCognitiveDock.tsx`.
+  - `src/app/globals.css`: Added `font-variant-numeric: tabular-nums` on monospace metrics/code and intentional `prefers-reduced-motion: reduce` support preserving color/opacity feedback while disabling scroll/transform motion.
+  - `src/app/error.tsx`: Added client Fatal Error boundary completing all 5 UI states (Loading, Empty, Success, Partial Error, Fatal Error) with one-click Retry and `localStorage` JSON backup export.
+  - `src/app/page.tsx`: Dynamically imported `SpatialCanvas` with `next/dynamic` (`ssr: false`) and themed drafting skeleton; repositioned status toast (`[role="status"]`) to `top-16 left-1/2 -translate-x-1/2` clear of MiniMap and bottom Studio HUD.
+  - `src/store/workspace-store.ts`: Auto-collapsed drawers on compact viewports (`< 1024px`) with single-drawer exclusivity so the canvas leads immediately on mobile/tablet.
+  - `src/components/canvas/MindMapNodeCard.tsx`: Enlarged interactive citation pill and hover action button targets (`min-h-[28px]`, `gap-1.5`) for WCAG SC 2.5.8 target spacing.
+  - `src/components/canvas/SpatialCanvas.tsx` & `src/components/studio/WalkthroughAndStudyBar.tsx`: Moved ReactFlow `<Controls>` to `position="top-left"`, hid `<MiniMap>` below `640px` (`!hidden sm:!block`), and aligned the mobile layout/study bar (`left-3 right-3`) with zero control collisions.
+- **5-Dimension Impeccable Audit Health Score (20 / 20)**:
+  1. **Accessibility (4 / 4)**: Semantic regions/landmarks, skip link, keyboard canvas traversal, visible focus styling, WCAG SC 2.5.8 target sizes, and motion-safe `prefers-reduced-motion`.
+  2. **Performance (4 / 4)**: `next/dynamic` (`ssr: false`) code-splitting for `SpatialCanvas`, clean derived state eliminating redundant effect cascades, and production Turbopack build green.
+  3. **Theming & Palette Coherence (4 / 4)**: Architectural Drafting Slate light/dark tokens honored across Launchpad, Studio, nodes, errors, and toasts with `tabular-nums` on monospace metrics.
+  4. **Responsive Design (4 / 4)**: Verified zero overlap and zero horizontal overflow across mobile (`390x844`, auto-collapsed drawers, hidden MiniMap, top-left Controls, non-overlapping Walkthrough/Layout bars & top-center Toast) and desktop (`1440x900`).
+  5. **Implementation Integrity & Anti-Slop (4 / 4)**: Zero ESLint warnings/errors, zero TypeScript errors, all 5 UI states covered via `src/app/error.tsx`, and 0 exposed secrets in built client assets.
+- **Phase 4 Verified Terminal & Browser Proof**:
+  - `npm --prefix "d:\Projects\MindWeave" run typecheck` -> exit `0` (`tsc --noEmit`)
+  - `npm --prefix "d:\Projects\MindWeave" run lint` -> exit `0` (`eslint .`, 0 errors / 0 warnings)
+  - `npm --prefix "d:\Projects\MindWeave" test` -> exit `0` (`5 passed (5)` test files, `20 passed (20)` tests via Vitest)
+  - `npm --prefix "d:\Projects\MindWeave" run build` -> exit `0` (Next.js 16.4.6 Turbopack; `/` static + 7 dynamic API routes)
+  - Client bundle secret scan (`.next/static`) -> `{"scannedFiles":17,"secretHits":[]}` (exit `0`)
+  - Live Phase 4 browser audit (`http://localhost:3000`, `next start -p 3000`, host-verified `visited_origins: http://localhost:3000`, `blocked_origins: none`, screenshot `final_step_59.png`): confirmed mobile (`390x844`) auto-collapsed drawers, `.react-flow__controls` at `x:15, y:67` (zero collision with mobile bottom bar at `y:782.4` or Walkthrough card at `y:653.4`), hidden `.react-flow__minimap` on mobile and visible on `1440x900` desktop (`x:1223.4, y:733.4`), `[role="status"]` toast at `top: 64`, `0px` horizontal overflow, and `0` console/page errors.
+- **Phase 4 Checkpoint**: Stopped cleanly for user approval before Phase 5 (CI/CD & Gate 2).

@@ -10,7 +10,7 @@ You are the **System Pilot**. Build deterministic, self-healing, production-grad
 - Tier: T0 Prototype (Local-First Flagship Workspace with IndexedDB + Multi-Format Export)
 - Stack: Next.js 16 (App Router, React 19, TypeScript), Tailwind CSS v4, @xyflow/react + ELK.js, Zustand, Zod, pdf-parse, KaTeX, Multi-Provider AI Gateway (OpenAI, Groq, Gemini, Anthropic, Tokens.bd, Ollama)
 - Core Commands: typecheck "npm run typecheck" | build "npm run build" | test "npm test" | lint "npm run lint"
-- Current Phase: 3 (Organization — executing 3-layer vertical feature slices <= 5 code files per slice)
+- Current Phase: 4 (Polish — UI/UX refinement, WCAG 2.1 AA audit, 5-state completeness, and React/Next performance)
 
 ## Precedence Hierarchy
 1. This file (`AGENTS.md`)

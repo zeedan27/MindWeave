@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import {
   BookOpen,
   Clock,
@@ -43,18 +43,12 @@ export default function StudioLaunchpad() {
     weaveNewWorkspace,
   } = useWorkspaceStore();
 
-  const [isDark, setIsDark] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setIsDark(document.documentElement.classList.contains('dark'));
-  }, []);
-
   const toggleTheme = () => {
-    const next = !isDark;
-    document.documentElement.classList.toggle('dark', next);
-    localStorage.setItem('mindweave_theme_v1', next ? 'dark' : 'light');
-    setIsDark(next);
+    const nextDark = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', nextDark);
+    localStorage.setItem('mindweave_theme_v1', nextDark ? 'dark' : 'light');
   };
 
   const handleImportJson = async (file: File | undefined) => {
@@ -115,9 +109,10 @@ export default function StudioLaunchpad() {
                 borderColor: 'var(--mw-border)',
                 color: 'var(--mw-ink)',
               }}
-              aria-label={isDark ? 'Switch to light drafting paper' : 'Switch to midnight blueprint'}
+              aria-label="Toggle color theme"
             >
-              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              <Sun className="w-4 h-4 hidden dark:block" />
+              <Moon className="w-4 h-4 block dark:hidden" />
             </button>
           </div>
         </div>

@@ -58,8 +58,11 @@ export default function RightCognitiveDock() {
     jumpToSourceAnchor,
   } = useWorkspaceStore();
 
-  const [topicDraft, setTopicDraft] = useState('');
-  const [summaryDraft, setSummaryDraft] = useState('');
+  const [nodeDraft, setNodeDraft] = useState<{
+    nodeId: string;
+    topic: string;
+    summary: string;
+  } | null>(null);
   const [linkTargetId, setLinkTargetId] = useState('');
   const [linkRelation, setLinkRelation] = useState<CrossLinkRelation>('supports');
   const [linkLabel, setLinkLabel] = useState('');
@@ -74,12 +77,14 @@ export default function RightCognitiveDock() {
 
   const activeNode = selectedMatch?.node || workspace?.rootNode || null;
 
-  useEffect(() => {
-    if (activeNode) {
-      setTopicDraft(activeNode.topic);
-      setSummaryDraft(activeNode.summary);
-    }
-  }, [activeNode]);
+  const topicDraft =
+    activeNode && nodeDraft?.nodeId === activeNode.id
+      ? nodeDraft.topic
+      : activeNode?.topic || '';
+  const summaryDraft =
+    activeNode && nodeDraft?.nodeId === activeNode.id
+      ? nodeDraft.summary
+      : activeNode?.summary || '';
 
   const outlineNodes = useMemo(() => {
     if (!workspace) return [];
@@ -204,7 +209,13 @@ export default function RightCognitiveDock() {
             <input
               type="text"
               value={topicDraft}
-              onChange={(e) => setTopicDraft(e.target.value)}
+              onChange={(e) =>
+                setNodeDraft({
+                  nodeId: activeNode.id,
+                  topic: e.target.value,
+                  summary: summaryDraft,
+                })
+              }
               aria-label="Node topic"
               className="w-full h-9 px-2.5 rounded-lg border text-sm font-semibold"
               style={{
@@ -215,7 +226,13 @@ export default function RightCognitiveDock() {
             />
             <textarea
               value={summaryDraft}
-              onChange={(e) => setSummaryDraft(e.target.value)}
+              onChange={(e) =>
+                setNodeDraft({
+                  nodeId: activeNode.id,
+                  topic: topicDraft,
+                  summary: e.target.value,
+                })
+              }
               rows={3}
               aria-label="Node summary"
               className="w-full p-2.5 rounded-lg border text-xs leading-relaxed resize-y"

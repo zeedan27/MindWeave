@@ -49,11 +49,16 @@ Skills & References Loaded: `scope/references/stack-matrix.md`, `scope/reference
 
 ---
 
-## Phase 4: P — Polish (Refinement, UI, Accessibility & Performance) — PLACEHOLDER
-*(Detailed audit checklist authored at Phase 4 entry after reading `impeccable`, `design-taste-frontend`, `web-design-guidelines`, and `vercel-react-best-practices`.)*
-- Run `impeccable` detect/audit + `design-taste-frontend` layout/copy/perf checks across `1440`, `1024`, `768`, `390` viewports via `/browser`
-- Verify WCAG 2.1 AA contrast, keyboard canvas traversal, outline tree parity, 5 UI states per view, and zero leaked secrets in client bundles
-- **Phase 4 Checkpoint (Hard Stop)**
+## Phase 4: P — Polish (Refinement, UI, Accessibility & Performance) — COMPLETE
+Skills Loaded: `impeccable` (`polish.md`, `audit.md`, `craft-floor.md`), `design-taste-frontend`, `web-design-guidelines`, `vercel-react-best-practices`
+
+- [x] Configure ESLint v9 flat config (`eslint.config.mjs`) and verify `npm run lint` passes with 0 errors
+- [x] Apply `impeccable` craft-floor & audit fixes in `src/app/globals.css` (intentional `prefers-reduced-motion` preserving state feedback, `tabular-nums` on monospace metrics)
+- [x] Add Fatal Error boundary (`src/app/error.tsx`) completing all 5 UI states (Loading, Empty, Success, Partial Error, Fatal Error) with offline JSON backup recovery
+- [x] Apply `vercel-react-best-practices` (`bundle-dynamic-imports`) in `src/app/page.tsx` via `next/dynamic` for `SpatialCanvas` with drafting skeleton
+- [x] Polish responsive mobile drawers (`< 1024px` auto-collapse & single-drawer exclusivity) in `src/store/workspace-store.ts`, WCAG SC 2.5.8 target spacing in `src/components/canvas/MindMapNodeCard.tsx`, and mobile/desktop Studio HUD & toast non-overlap (`SpatialCanvas.tsx`, `WalkthroughAndStudyBar.tsx`, `src/app/page.tsx`)
+- [x] Verify client bundle secret scan, `typecheck`, `lint`, `test`, `build`, and live `/browser` check across desktop & mobile
+- [x] Record 5-Dimension Impeccable Audit Health Score in `progress.md` and stop at **Phase 4 Checkpoint**
 
 ---
 

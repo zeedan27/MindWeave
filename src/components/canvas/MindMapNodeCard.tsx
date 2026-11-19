@@ -281,7 +281,7 @@ function MindMapNodeCardInner({ id, data }: NodeProps) {
 
           {/* Grounded Citation & Timestamp Pills */}
           {node.anchors.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2 nodrag nopan">
+            <div className="flex flex-wrap gap-1.5 mt-2 nodrag nopan">
               {node.anchors.slice(0, 2).map((anchor, idx) => (
                 <button
                   key={`${anchor.sourceId}-${idx}`}
@@ -291,7 +291,7 @@ function MindMapNodeCardInner({ id, data }: NodeProps) {
                     selectNode(id);
                     jumpToSourceAnchor(anchor);
                   }}
-                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-mono text-[10px] font-medium border transition-opacity hover:opacity-85"
+                  className="inline-flex items-center gap-1 min-h-[28px] px-2 py-1 rounded font-mono text-[10px] font-medium border transition-opacity hover:opacity-85"
                   style={{
                     backgroundColor: isRoot ? 'rgba(255,255,255,0.16)' : 'var(--mw-cite-bg)',
                     color: isRoot ? '#ffffff' : 'var(--mw-cite-ink)',
@@ -341,12 +341,12 @@ function MindMapNodeCardInner({ id, data }: NodeProps) {
       {/* Quick Hover/Selected Action Bar */}
       {(hovered || isSelected || isExpanding) && !isClozeMasked && (
         <div
-          className="nodrag nopan flex items-center justify-between gap-1 mt-2.5 pt-2 border-t text-[11px]"
+          className="nodrag nopan flex items-center justify-between gap-1.5 mt-2.5 pt-2 border-t text-[11px]"
           style={{
             borderColor: isRoot ? 'rgba(255,255,255,0.22)' : 'var(--mw-border)',
           }}
         >
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={(e) => {
@@ -354,7 +354,7 @@ function MindMapNodeCardInner({ id, data }: NodeProps) {
                 void expandNodeById(id);
               }}
               disabled={isExpanding}
-              className="h-6 px-2 rounded-md font-medium inline-flex items-center gap-1 border"
+              className="min-h-[28px] px-2.5 rounded-md font-medium inline-flex items-center gap-1 border"
               style={{
                 backgroundColor: isRoot ? 'rgba(255,255,255,0.16)' : 'var(--mw-bg)',
                 borderColor: isRoot ? 'rgba(255,255,255,0.24)' : 'var(--mw-border)',
@@ -377,7 +377,7 @@ function MindMapNodeCardInner({ id, data }: NodeProps) {
                 selectNode(id);
                 setRightDrawer(true, 'inspector');
               }}
-              className="h-6 px-2 rounded-md font-medium inline-flex items-center gap-1 border"
+              className="min-h-[28px] px-2.5 rounded-md font-medium inline-flex items-center gap-1 border"
               style={{
                 backgroundColor: isRoot ? 'rgba(255,255,255,0.16)' : 'var(--mw-bg)',
                 borderColor: isRoot ? 'rgba(255,255,255,0.24)' : 'var(--mw-border)',
@@ -400,7 +400,7 @@ function MindMapNodeCardInner({ id, data }: NodeProps) {
                   deleteNodeById(id);
                 }
               }}
-              className="h-6 px-1.5 rounded-md inline-flex items-center gap-1 border"
+              className="min-h-[28px] min-w-[28px] px-2 rounded-md inline-flex items-center justify-center gap-1 border"
               style={{
                 backgroundColor: confirmDelete ? 'var(--mw-crimson-bg)' : 'var(--mw-bg)',
                 borderColor: confirmDelete ? 'var(--mw-crimson)' : 'var(--mw-border)',
