@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { isLiveAIConfigured, resolveRuntimeAIConfig, runAICompletion } from '@/lib/ai/gateway';
 import { formatTimestampSec } from '@/lib/demo-workspace';
+import { rankRelevantSegments } from '@/lib/ingestion/segment-ranker';
 import { apiError, apiSuccess, createRequestId, logger } from '@/lib/logger';
 import { checkRateLimit, getClientRateLimitKey } from '@/lib/rate-limit';
 import { ChatRequestSchema, SourceAnchor, SourceSegment } from '@/lib/schemas';
@@ -10,21 +11,9 @@ function findMatchingCitations(
   segments?: SourceSegment[]
 ): SourceAnchor[] {
   if (!segments || segments.length === 0) return [];
-  const tokens = query
-    .toLowerCase()
-    .split(/\W+/)
-    .filter((w) => w.length >= 4);
+  const top = rankRelevantSegments(query, segments, 2);
 
-  const scored = segments
-    .map((seg) => {
-      const hay = `${seg.heading || ''} ${seg.text}`.toLowerCase();
-      const hits = tokens.reduce((acc, t) => (hay.includes(t) ? acc + 1 : acc), 0);
-      return { seg, hits };
-    })
-    .sort((a, b) => b.hits - a.hits)
-    .slice(0, 2);
-
-  return scored.map(({ seg }) => ({
+  return top.map((seg) => ({
     sourceId: seg.sourceId,
     segmentId: seg.id,
     sourceType: seg.startSec !== undefined ? 'youtube' : seg.pageNumber ? 'pdf' : 'text',
@@ -78,8 +67,12 @@ export async function POST(request: NextRequest) {
       return apiSuccess({ reply, citations, usedFallback: true }, requestId);
     }
 
-    const segCtx = (sourceSegments || [])
-      .slice(0, 8)
+    const rankedSegments = rankRelevantSegments(
+      `${selectedNode?.topic || ''} ${selectedNode?.summary || ''} ${message}`,
+      sourceSegments || [],
+      8
+    );
+    const segCtx = rankedSegments
       .map((s) => {
         const tag =
           s.startSec !== undefined
@@ -87,7 +80,8 @@ export async function POST(request: NextRequest) {
             : s.pageNumber
               ? `Page ${s.pageNumber}`
               : s.heading || 'Note';
-        return `[${tag}] ${s.text.slice(0, 320)}`;
+        const headingSuffix = s.heading && s.pageNumber ? ` | ${s.heading}` : '';
+        return `[${tag}${headingSuffix}] ${s.text.slice(0, 520)}`;
       })
       .join('\n');
 

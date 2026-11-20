@@ -15,7 +15,7 @@
 - Over-limit callers receive HTTP `429` with `RATE_LIMITED` and a `Retry-After` header.
 
 ## 4. Multi-Provider Gateway & JSON Self-Healing
-- `src/lib/ai/gateway.ts` resolves config in priority order: (1) valid request BYOK header (`x-mindweave-ai-config`), (2) server `.env` (`AI_PROVIDER`, `AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL`).
+- `src/lib/ai/gateway.ts` resolves config in priority order: (1) valid request BYOK header (`x-mindweave-ai-config`), (2) server `.env` (`AI_PROVIDER`, `AI_API_KEY`, `AI_BASE_URL`, `AI_MODEL`). `AICompletionRequest` accepts `jsonMode?: boolean`, enabling native JSON mode (`response_format: { type: 'json_object' }` with automatic HTTP `400` fallback `ai.json_mode.fallback` for OpenAI-compatible endpoints, and `responseMimeType: 'application/json'` for Google Gemini) and emitting structured truncation warnings (`ai.completion.truncated`) when `finish_reason === 'length'`, `stop_reason === 'max_tokens'`, or `finishReason === 'MAX_TOKENS'`.
 - Supported providers:
   - `openai` (`https://api.openai.com/v1`, default `gpt-4o-mini`)
   - `groq` (`https://api.groq.com/openai/v1`, default `llama-3.3-70b-versatile`)
@@ -23,4 +23,4 @@
   - `anthropic` (`https://api.anthropic.com/v1` with `anthropic-version: 2023-06-01`, default `claude-3-5-haiku-20241022`)
   - `tokens_bd` (`https://tokens.bd/v1`, default `deepseek-ai/deepseek-v4.1-flash-1017`, per `tokens-bd-api` skill)
   - `ollama` (`http://localhost:11434/v1`, default `llama3.2`, optional empty key treated as `'ollama'`)
-- `src/lib/ai/json-guard.ts` strips markdown code fences, isolates balanced `{...}` JSON objects, and validates output with Zod before returning.
+- `src/lib/ai/json-guard.ts` performs fence-safe balanced `{...}`/`[...]` extraction (preserving triple backticks inside JSON strings), single-pass string control-char & invalid backslash escaping (e.g., LaTeX `\sqrt`, `\frac`), string-aware trailing-comma stripping, and schema-verified truncated-JSON repair fallback before Zod validation.

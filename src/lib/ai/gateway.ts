@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { logger } from '@/lib/logger';
 import {
   AIProviderId,
   AIProviderIdSchema,
@@ -127,10 +128,19 @@ export interface AICompletionRequest {
   history?: Array<{ role: 'user' | 'assistant'; content: string }>;
   temperature?: number;
   maxTokens?: number;
+  jsonMode?: boolean;
 }
 
 export async function runAICompletion(req: AICompletionRequest): Promise<string> {
-  const { config, systemPrompt, userPrompt, history = [], temperature = 0.4, maxTokens = 4096 } = req;
+  const {
+    config,
+    systemPrompt,
+    userPrompt,
+    history = [],
+    temperature = 0.4,
+    maxTokens = 4096,
+    jsonMode = false,
+  } = req;
   const defaults = PROVIDER_DEFAULTS[config.provider];
   const model = config.model || defaults.defaultModel;
 
@@ -148,11 +158,23 @@ export async function runAICompletion(req: AICompletionRequest): Promise<string>
 
     const chat = genModel.startChat({
       history: geminiHistory,
-      generationConfig: { temperature, maxOutputTokens: maxTokens },
+      generationConfig: {
+        temperature,
+        maxOutputTokens: maxTokens,
+        ...(jsonMode ? { responseMimeType: 'application/json' } : {}),
+      },
     });
 
     const promptText = `${systemPrompt}\n\n${userPrompt}`;
     const result = await chat.sendMessage(promptText);
+    const finishReason = result.response.candidates?.[0]?.finishReason;
+    if (finishReason === 'MAX_TOKENS') {
+      logger.warn('ai.completion.truncated', {
+        provider: 'google',
+        model,
+        finishReason: 'MAX_TOKENS',
+      });
+    }
     return result.response.text();
   }
 
@@ -186,7 +208,15 @@ export async function runAICompletion(req: AICompletionRequest): Promise<string>
 
     const payload = (await response.json()) as {
       content?: Array<{ type: string; text?: string }>;
+      stop_reason?: string;
     };
+    if (payload.stop_reason === 'max_tokens') {
+      logger.warn('ai.completion.truncated', {
+        provider: 'anthropic',
+        model,
+        finishReason: 'max_tokens',
+      });
+    }
     return payload.content?.find((b) => b.type === 'text')?.text ?? '';
   }
 
@@ -198,16 +228,45 @@ export async function runAICompletion(req: AICompletionRequest): Promise<string>
     maxRetries: 2,
   });
 
-  const completion = await client.chat.completions.create({
+  const basePayload = {
     model,
     temperature,
     max_tokens: maxTokens,
     messages: [
-      { role: 'system', content: systemPrompt },
+      { role: 'system' as const, content: systemPrompt },
       ...history.map((m) => ({ role: m.role, content: m.content })),
-      { role: 'user', content: userPrompt },
+      { role: 'user' as const, content: userPrompt },
     ],
-  });
+  };
+
+  let completion;
+  if (jsonMode) {
+    try {
+      completion = await client.chat.completions.create({
+        ...basePayload,
+        response_format: { type: 'json_object' },
+      });
+    } catch (err) {
+      const isBadRequest =
+        err !== null &&
+        typeof err === 'object' &&
+        'status' in err &&
+        (err as { status?: unknown }).status === 400;
+      if (!isBadRequest) throw err;
+      logger.warn('ai.json_mode.fallback', { provider: config.provider, model });
+      completion = await client.chat.completions.create(basePayload);
+    }
+  } else {
+    completion = await client.chat.completions.create(basePayload);
+  }
+
+  if (completion.choices[0]?.finish_reason === 'length') {
+    logger.warn('ai.completion.truncated', {
+      provider: config.provider,
+      model,
+      finishReason: 'length',
+    });
+  }
 
   return completion.choices[0]?.message?.content ?? '';
 }

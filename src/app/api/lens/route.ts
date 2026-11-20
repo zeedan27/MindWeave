@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { isLiveAIConfigured, resolveRuntimeAIConfig, runAICompletion } from '@/lib/ai/gateway';
 import { extractAndValidateJson } from '@/lib/ai/json-guard';
+import { rankRelevantSegments } from '@/lib/ingestion/segment-ranker';
 import { apiError, apiSuccess, createRequestId, logger } from '@/lib/logger';
 import { checkRateLimit, getClientRateLimitKey } from '@/lib/rate-limit';
 import { NodeLensCard, NodeLensRequestSchema } from '@/lib/schemas';
@@ -108,9 +109,12 @@ export async function POST(request: NextRequest) {
         'Provide a formal KaTeX mathLatex equation, concise runnable codeBlock, and simple Mermaid flowchart string.',
     };
 
-    const segCtx = (sourceSegments || [])
-      .slice(0, 6)
-      .map((s) => s.text.slice(0, 260))
+    const segCtx = rankRelevantSegments(
+      `${node.topic} ${node.summary} ${lensType}`,
+      sourceSegments || [],
+      6
+    )
+      .map((s) => s.text.slice(0, 480))
       .join('\n');
 
     const raw = await runAICompletion({
@@ -127,6 +131,7 @@ Return ONLY valid JSON:
 }`,
       userPrompt: `Workspace: "${workspaceTitle}"\nNode: "${node.topic}"\nSummary: "${node.summary}"\n${segCtx ? `Sources:\n${segCtx}` : ''}`,
       temperature: 0.4,
+      jsonMode: true,
     });
 
     const validated = extractAndValidateJson(raw, RawLensSchema);

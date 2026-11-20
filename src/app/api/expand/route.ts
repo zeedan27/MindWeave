@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { isLiveAIConfigured, resolveRuntimeAIConfig, runAICompletion } from '@/lib/ai/gateway';
 import { extractAndValidateJson } from '@/lib/ai/json-guard';
 import { formatTimestampSec } from '@/lib/demo-workspace';
+import { rankRelevantSegments } from '@/lib/ingestion/segment-ranker';
 import { apiError, apiSuccess, createRequestId, logger } from '@/lib/logger';
 import { checkRateLimit, getClientRateLimitKey } from '@/lib/rate-limit';
 import {
@@ -32,22 +33,7 @@ function pickAnchorForText(
   segments?: SourceSegment[]
 ): SourceAnchor[] {
   if (!segments || segments.length === 0) return [];
-  const words = text
-    .toLowerCase()
-    .split(/\W+/)
-    .filter((w) => w.length > 3);
-  let best: SourceSegment | null = null;
-  let bestScore = 0;
-
-  for (const seg of segments) {
-    const lower = seg.text.toLowerCase();
-    const score = words.reduce((acc, w) => (lower.includes(w) ? acc + 1 : acc), 0);
-    if (score > bestScore) {
-      bestScore = score;
-      best = seg;
-    }
-  }
-  const chosen = best || segments[0];
+  const chosen = rankRelevantSegments(text, segments, 1)[0] || segments[0];
   return [
     {
       sourceId: chosen.sourceId,
@@ -119,9 +105,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const segmentCtx = (sourceSegments || [])
-      .slice(0, 10)
-      .map((s) => `[${s.id}] ${s.text.slice(0, 300)}`)
+    const rankedSegments = rankRelevantSegments(
+      `${node.topic} ${node.summary} ${ancestorTopics.join(' ')}`,
+      sourceSegments || [],
+      10
+    );
+    const segmentCtx = rankedSegments
+      .map((s) => `[${s.id}${s.heading ? ` | ${s.heading}` : ''}] ${s.text.slice(0, 480)}`)
       .join('\n');
 
     const raw = await runAICompletion({
@@ -139,6 +129,7 @@ Ancestors: ${ancestorTopics.join(' > ') || 'None'}
 Existing Siblings (do not duplicate): ${siblingTopics.join(', ') || 'None'}
 ${segmentCtx ? `\nRelevant Source Segments:\n${segmentCtx}` : ''}`,
       temperature: 0.45,
+      jsonMode: true,
     });
 
     const validated = extractAndValidateJson(raw, RawExpandSchema);

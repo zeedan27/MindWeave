@@ -71,6 +71,71 @@ describe('Slice 1: Core Domain Contracts, Logger, Rate Limiter & AI Gateway', ()
     }
   });
 
+  it('handles triple backticks inside JSON strings, unescaped newlines/tabs/control chars, invalid LaTeX backslashes, and trailing commas', () => {
+    const schema = z.object({
+      topic: z.string(),
+      code: z.string(),
+      math: z.string(),
+    });
+    const raw = [
+      '```json',
+      '{',
+      '  "topic": "Line 1\nLine 2\tTabbed\u0007Bell",',
+      '  "code": "Use ```ts\\nconst x = 1;\\n``` here",',
+      '  "math": "\\sqrt{d_k} + \\alpha",',
+      '}',
+      '```',
+    ].join('\n');
+
+    const result = extractAndValidateJson(raw, schema);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.topic).toBe('Line 1\nLine 2\tTabbedBell');
+      expect(result.data.code).toContain('```ts');
+      expect(result.data.math).toBe('\\sqrt{d_k} + \\alpha');
+    }
+  });
+
+  it('recovers truncated JSON payloads cut off mid-string or mid-child-object when schema still validates, and rejects unsalvageable truncated payloads', () => {
+    const weaveLikeSchema = z.object({
+      title: z.string().min(1),
+      rootNode: z.object({
+        topic: z.string().min(1),
+        children: z.array(
+          z.object({
+            topic: z.string().min(1),
+            summary: z.string().optional(),
+          })
+        ),
+      }),
+    });
+
+    // Cut off mid-string in a second child node (like "Unterminated string in JSON at position 3187")
+    const truncatedMidString =
+      '```json\n{"title":"PDF Synthesis","rootNode":{"topic":"Attention","children":[{"topic":"Scaled Dot-Product","summary":"Divides by sqrt(d_k)"},{"topic":"Multi-Head","summary":"This string got cut off mid-sent';
+    const recoveredMidString = extractAndValidateJson(truncatedMidString, weaveLikeSchema);
+    expect(recoveredMidString.ok).toBe(true);
+    if (recoveredMidString.ok) {
+      expect(recoveredMidString.data.title).toBe('PDF Synthesis');
+      expect(recoveredMidString.data.rootNode.children.length).toBeGreaterThanOrEqual(1);
+      expect(recoveredMidString.data.rootNode.children[0].topic).toBe('Scaled Dot-Product');
+    }
+
+    // Cut off mid-property-key inside a partial second child object
+    const truncatedMidKey =
+      '{"title":"PDF Synthesis","rootNode":{"topic":"Attention","children":[{"topic":"Branch 1","summary":"Complete"},{"topic":"Branch 2","sum';
+    const recoveredMidKey = extractAndValidateJson(truncatedMidKey, weaveLikeSchema);
+    expect(recoveredMidKey.ok).toBe(true);
+    if (recoveredMidKey.ok) {
+      expect(recoveredMidKey.data.rootNode.children.length).toBeGreaterThanOrEqual(1);
+    }
+
+    // Unsalvageable truncated payload missing required rootNode -> must fail loudly
+    const unsalvageable = '{"title":"Incomplete Title Only';
+    const rejected = extractAndValidateJson(unsalvageable, weaveLikeSchema);
+    expect(rejected.ok).toBe(false);
+  });
+
   it('parses Base64 BYOK headers and rejects invalid baseUrl SSRF attempts', () => {
     const validHeader = Buffer.from(
       JSON.stringify({

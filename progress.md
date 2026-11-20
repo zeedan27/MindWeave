@@ -185,3 +185,46 @@
 | 11 | Cost caps and budget alerts set (T1+) | Deferred (T1+) | Users supply own BYOK keys or server `.env` key bounded by 30 req/min rate limit & char caps; hosted billing caps trigger at T1. |
 | 12 | Staging / production smoke test passed via `/browser` | Passed | Verified live on local production build (`next start -p 3000`, `http://localhost:3000`) via isolated `browser` subagent (`final_step_71.png`, 0 console/page errors). |
 | 13 | Deployment follows S.C.O.P.E. Deploy Rule | Passed (Committed Local Payload; No Live Cloud Push Unasked) | Ready for Git-connected push/deploy from clean tree; zero folder-upload tools used; production runbook finalized in `architecture/maintenance.md`. |
+
+## 2026-11-20 — Bugfix: Live AI PDF Weaving JSON Truncation & PDF Extraction Hardening
+- **Root Cause Observed (`.next/dev/logs/next-development.log`, `requestId: req_d4e947351e274274`)**:
+  - `AI_SCHEMA_INVALID:Invalid JSON payload: Unterminated string in JSON at position 3187 (line 68 column 146)` during live-AI PDF weaving (`POST /api/weave`).
+  - Compounding factors: `runAICompletion()` did not request native JSON mode (`response_format` / `responseMimeType`) or log truncation warnings; `weaveSourcesToWorkspace()` used `maxTokens: 4096` with no nullish tolerance or retry; `extractJsonSubstring()` / `extractAndValidateJson()` truncated on backticks inside strings, lacked string control-char/invalid-escape sanitization, and had no truncated-JSON recovery; `extractFromPdfBuffer()` used `pdf-parse`'s default `-- 1 of N --` `pageJoiner` (masking scanned/empty PDFs) and kept raw control bytes / lone surrogates; `MultiSourceTray.tsx` nested `<input type="file">` inside the dropzone click handler.
+- **SOPs & Code Changes Applied**:
+  - Updated SOPs: `architecture/security-and-ai.md`, `architecture/ingestion-and-synthesis.md`.
+  - `src/lib/ai/json-guard.ts`: Fence-safe balanced JSON extraction (`extractJsonSubstring`), single-pass string control-char & invalid-escape sanitization plus trailing-comma stripping (`sanitizeJsonText`), and schema-verified truncated-JSON container closing & rollback recovery (`closeOpenContainers`, `collectRollbackIndices`).
+  - `src/lib/ai/gateway.ts`: Added `jsonMode?: boolean` (`response_format: { type: 'json_object' }` with HTTP `400` fallback `ai.json_mode.fallback` for OpenAI-compatible clients; `responseMimeType: 'application/json'` for Google Gemini) and structured truncation warnings (`ai.completion.truncated`).
+  - `src/lib/ingestion/weaver.ts`: Enabled `jsonMode: true` and `maxTokens: 8192`, tightened JSON formatting & summary conciseness rules, made `RawWeaveOutputSchema` nullish-tolerant with field clamping to `MindMapWorkspaceSchema` bounds, and added 1 automatic compact-JSON retry (`weave.json_retry`).
+  - `src/lib/ingestion/extractors.ts`: Passed `{ pageJoiner: '' }` to `parser.getText()`, sanitized ASCII control characters & lone UTF-16 surrogates (`sanitizeExtractedText`), and mapped `PasswordException` / `InvalidPDFException` / `FormatError` to clear errors.
+  - `src/components/MultiSourceTray.tsx`: Moved hidden `<input type="file">` out as a sibling of the dropzone `<div>`, expanded `accept` to include MIME types (`application/pdf,text/plain,text/markdown,.pdf,.txt,.md`), guarded interactions while `isWeaving`, and removed state setter side effects from `setStaged` updaters.
+  - Regression tests added in `tests/slice1-core-gateway.test.ts` and `tests/slice2-ingestion-weave.test.ts`.
+- **Fresh Verification Proof**:
+  - `npm run typecheck` (`tsc --noEmit`) -> exit `0`.
+  - `npm run lint` (`eslint .`) -> exit `0`.
+  - `npm test` (`vitest run`) -> exit `0` (`Test Files 5 passed (5)`, `Tests 23 passed (23)`).
+  - `npm run build` (`next build`) -> exit `0` (Next.js `16.4.6` Turbopack).
+  - `npm run verify:gate2` -> exit `0` (`ALL_GATE_2_CHECKS_PASSED`, 71 tracked files, `git log -20`, 17 static assets).
+  - Live `http://localhost:3000/api/weave` smoke test: valid PDF -> HTTP `200` (`NO_MARKER`); blank/scanned PDF -> HTTP `422` (`"Could not extract text from PDF (the file may be scanned images or empty)."`); corrupt PDF -> HTTP `422` (`"Invalid or corrupted PDF file."`).
+
+## 2026-11-20 — Upgrade: Coordinate-Aware Multi-Column PDF Ingestion & Whole-Document Relevance Ranking (Slices A & B)
+- **SOPs Updated**:
+  - `architecture/ingestion-and-synthesis.md` (Sections 2 & 3)
+  - `architecture/cognitive-apis.md` (Sections 1 & 2)
+- **Slice A (`src/` — 5 files)**:
+  - `src/lib/ingestion/pdf-layout.ts` (new): Coordinate-aware `pdfjs-dist/legacy/build/pdf.mjs` extractor (`extractRawPdfPages`, `reconstructPagesLayout`, `extractPdfLayoutDocument`) mapping viewport coordinates, stripping running headers/footers/page numbers in top/bottom 6% bands across `>= 3` pages, grouping lines safely without bridging wide column gutters, routing single vs. two-column pages by vertical zones (preserving full-width titles/abstracts/tables), detecting headings by median font size (`>= 1.15x`), bold font names, and numbered/canonical academic titles (`## Heading`), repairing end-of-line hyphenation while preserving compound prefixes, and converting aligned multi-cell grids to Markdown tables.
+  - `src/lib/ingestion/segment-ranker.ts` (new, pure client-safe): Implemented `isReferenceSegment`, `sampleStratifiedSegments`, and `rankRelevantSegments` to exclude/de-prioritize `References` and surface opening, middle heading/table, and closing sections.
+  - `src/lib/ingestion/extractors.ts`: Upgraded `chunkTextIntoSegments()` (`~800` char flush target, `1500` char max, Markdown table block preservation without collapsing row newlines) and `extractFromPdfBuffer()` (meaningful alphanumeric char thresholds `< 50` multi-page / `< 10` single-page with zero `-- 1 of N --` markers, cross-page active heading propagation, and `200`-segment cap). Note: scanned PDFs fail cleanly without unrequested paid vision API calls.
+  - `src/lib/ingestion/weaver.ts` & `src/lib/demo-workspace.ts`: Switched from `slice(0, 16)` / `slice(0, 4)` to `sampleStratifiedSegments()` across opening/middle/closing sections (`24` segments × `750` chars in `weaver.ts`).
+- **Slice B (`src/` — 5 files)**:
+  - `src/store/workspace-store.ts`: Replaced blind `.slice(0, N)` in `expandNodeById`, `applyNodeLens`, `evaluateStudyAttempt`, `sendChatMessage`, and `detectBlindSpots` with `rankRelevantSegments()` and `sampleStratifiedSegments()`.
+  - `src/app/api/chat/route.ts`, `src/app/api/expand/route.ts`, `src/app/api/lens/route.ts`, `src/app/api/study/evaluate/route.ts`: Applied `rankRelevantSegments()` for citation/anchor selection and LLM context windows, plus `jsonMode: true` on structured JSON routes.
+- **Tests Added**:
+  - `tests/slice2-ingestion-weave.test.ts`: Synthetic two-column PDF reading-order + heading + hyphenation + footer test, 4-page repeated header/footer + aligned table preservation test, multi-page low-text scanned PDF rejection test, and 80-segment stratified sampling / ranking test.
+  - `tests/slice3-cognitive-apis.test.ts`: 25-segment late-paper Markdown table (`Page 14`) retrieval test for `/api/chat` and `/api/expand`.
+- **Fresh Verification Proof**:
+  - `npm run typecheck` (`tsc --noEmit`) -> exit `0`.
+  - `npm run lint` (`eslint .`) -> exit `0` (0 errors, 0 warnings).
+  - `npm test` (`vitest run`) -> exit `0` (`Test Files 5 passed (5)`, `Tests 27 passed (27)`).
+  - `npm run build` (`next build`) -> exit `0` (Next.js `16.4.6` Turbopack).
+  - `npm run verify:gate2` -> exit `0` (`ALL_GATE_2_CHECKS_PASSED`, 71 tracked files, `git log -20`, 16 static assets).
+  - Live `http://localhost:3000/api/weave` smoke check: two-column PDF -> HTTP `200` with title/abstract first, then `1. Introduction` (left column, hyphenation repaired), then `2. Methodology` (right column); blank/scanned PDF -> HTTP `422` (`"Could not extract meaningful text from PDF (the file appears to be scanned images or empty)."`).

@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { sampleStratifiedSegments } from '@/lib/ingestion/segment-ranker';
 import type {
   AgreementStatus,
   BlindSpotInsight,
@@ -505,7 +506,7 @@ export function buildDeterministicWorkspaceFromSources(
   const isMulti = sources.length > 1;
 
   const branchNodes: MindMapNode[] = sources.flatMap((src, sIdx): MindMapNode[] => {
-    const segs = src.segments.slice(0, 4);
+    const segs = sampleStratifiedSegments(src.segments, sources.length === 1 ? 6 : 4);
     const parentId = `branch_${sIdx}`;
     const agreement: AgreementStatus | undefined = isMulti
       ? sIdx === 0

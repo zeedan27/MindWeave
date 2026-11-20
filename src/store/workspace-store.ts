@@ -3,6 +3,10 @@
 import { create } from 'zustand';
 import { createFlagshipDemoWorkspace } from '@/lib/demo-workspace';
 import {
+  rankRelevantSegments,
+  sampleStratifiedSegments,
+} from '@/lib/ingestion/segment-ranker';
+import {
   BlindSpotInsight,
   ChatMessage,
   CrossLink,
@@ -588,6 +592,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
 
       try {
         const allSegments = workspace.sources.flatMap((s) => s.segments);
+        const expandQuery = `${found.node.topic} ${found.node.summary} ${found.ancestorTopics.join(' ')}`;
         const res = await fetch('/api/expand', {
           method: 'POST',
           headers: buildApiHeaders(byokConfig),
@@ -596,7 +601,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
             node: { id: found.node.id, topic: found.node.topic, summary: found.node.summary },
             siblingTopics: found.siblingTopics,
             ancestorTopics: found.ancestorTopics,
-            sourceSegments: allSegments.slice(0, 30),
+            sourceSegments: rankRelevantSegments(expandQuery, allSegments, 30),
           }),
         });
         const json = await res.json();
@@ -641,6 +646,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
 
       try {
         const allSegments = workspace.sources.flatMap((s) => s.segments);
+        const lensQuery = `${found.node.topic} ${found.node.summary} ${lensType}`;
         const res = await fetch('/api/lens', {
           method: 'POST',
           headers: buildApiHeaders(byokConfig),
@@ -648,7 +654,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
             workspaceTitle: workspace.title,
             node: { id: found.node.id, topic: found.node.topic, summary: found.node.summary },
             lensType,
-            sourceSegments: allSegments.slice(0, 20),
+            sourceSegments: rankRelevantSegments(lensQuery, allSegments, 20),
           }),
         });
         const json = await res.json();
@@ -684,7 +690,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
           summary: n.summary,
         }));
         const sourceSummary = workspace.sources
-          .map((s) => `${s.title}: ${s.segments.slice(0, 3).map((seg) => seg.text).join(' ')}`)
+          .map(
+            (s) =>
+              `${s.title}: ${sampleStratifiedSegments(s.segments, 6)
+                .map((seg) => seg.text.slice(0, 280))
+                .join(' ')}`
+          )
           .join('\n')
           .slice(0, 6000);
 
@@ -785,6 +796,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
 
       try {
         const allSegments = workspace.sources.flatMap((s) => s.segments);
+        const studyQuery = `${found.node.topic} ${found.node.summary} ${userAnswer}`;
         const res = await fetch('/api/study/evaluate', {
           method: 'POST',
           headers: buildApiHeaders(byokConfig),
@@ -797,7 +809,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
               childrenTopics: found.node.children.map((c) => c.topic),
             },
             userAnswer: userAnswer.trim(),
-            sourceSegments: allSegments.slice(0, 20),
+            sourceSegments: rankRelevantSegments(studyQuery, allSegments, 20),
           }),
         });
         const json = await res.json();
@@ -891,6 +903,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
           summary: n.summary,
         }));
         const allSegments = workspace.sources.flatMap((s) => s.segments);
+        const chatQuery = `${found?.node.topic || ''} ${found?.node.summary || ''} ${message}`;
 
         const res = await fetch('/api/chat', {
           method: 'POST',
@@ -908,7 +921,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => {
                   childrenTopics: found.node.children.map((c) => c.topic),
                 }
               : undefined,
-            sourceSegments: allSegments.slice(0, 30),
+            sourceSegments: rankRelevantSegments(chatQuery, allSegments, 30),
           }),
         });
 

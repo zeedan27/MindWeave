@@ -128,4 +128,79 @@ describe('Slice 3: Cognitive Graph APIs (Expand, Lenses, BlindSpots, Study, Chat
     expect(json.data.citations.length).toBe(1);
     expect(json.data.citations[0].label).toBe('▶ 18:40');
   });
+
+  it('retrieves late-paper sections and Markdown tables over opening pages or References in /api/chat and /api/expand', async () => {
+    const sourceSegments = Array.from({ length: 25 }, (_, idx) => {
+      if (idx === 19) {
+        return {
+          id: `seg-${idx}`,
+          sourceId: 'src_pdf',
+          index: idx,
+          pageNumber: 14,
+          heading: '4. Experimental Results',
+          text: '| Model | Accuracy | Latency |\n| --- | --- | --- |\n| MindWeave-7B | 95.1% | 11ms |',
+        };
+      }
+      if (idx >= 21) {
+        return {
+          id: `seg-${idx}`,
+          sourceId: 'src_pdf',
+          index: idx,
+          pageNumber: idx >= 23 ? 16 : 15,
+          heading: 'References',
+          text: `[${idx}] Doe et al. (2024). Experimental results benchmark table. [${idx + 1}] Lee et al. (2023).`,
+        };
+      }
+      return {
+        id: `seg-${idx}`,
+        sourceId: 'src_pdf',
+        index: idx,
+        pageNumber: Math.max(1, Math.min(12, Math.floor(idx / 2) + 1)),
+        heading: idx < 4 ? '1. Introduction' : '2. Background',
+        text: `Introductory context paragraph ${idx} discussing neural sequence models.`,
+      };
+    });
+
+    const chatReq = new NextRequest('http://localhost/api/chat', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        message: 'What does the Experimental Results benchmark accuracy table show?',
+        workspaceTitle: 'Long Paper',
+        nodesOutline: [{ id: 'n_res', topic: 'Experimental Results', summary: 'Evaluation metrics' }],
+        selectedNode: {
+          id: 'n_res',
+          topic: 'Experimental Results',
+          summary: 'Accuracy and latency comparison',
+          childrenTopics: [],
+        },
+        sourceSegments,
+      }),
+    });
+    const chatRes = await chatPost(chatReq);
+    expect(chatRes.status).toBe(200);
+    const chatJson = await chatRes.json();
+    expect(chatJson.data.citations[0].pageNumber).toBe(14);
+    expect(chatJson.data.citations[0].label).toBe('Page 14');
+
+    const expandReq = new NextRequest('http://localhost/api/expand', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        workspaceTitle: 'Long Paper',
+        node: {
+          id: 'n_res',
+          topic: 'Experimental Results',
+          summary: 'Accuracy and latency benchmarks',
+        },
+        siblingTopics: [],
+        ancestorTopics: ['Long Paper'],
+        sourceSegments,
+      }),
+    });
+    const expandRes = await expandPost(expandReq);
+    expect(expandRes.status).toBe(200);
+    const expandJson = await expandRes.json();
+    expect(expandJson.data.children[0].anchors[0].pageNumber).toBe(14);
+  });
 });

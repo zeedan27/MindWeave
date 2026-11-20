@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import type { SourceDocument, SourceSegment } from '@/lib/schemas';
+import { extractPdfLayoutDocument } from '@/lib/ingestion/pdf-layout';
 
 const YOUTUBE_ID_PATTERNS = [
   /(?:youtube\.com\/watch\?(?:.*&)?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
@@ -31,33 +32,84 @@ function decodeHtmlEntities(raw: string): string {
     .replace(/&#(\d+);/g, (_m, dec) => String.fromCharCode(Number(dec)));
 }
 
+const TABLE_LINE_REGEX = /^\|.+\|$/;
+const TABLE_SEPARATOR_REGEX = /^\|(?:\s*:?-{2,}:?\s*\|)+$/;
+
 export function chunkTextIntoSegments(
   sourceId: string,
   rawText: string,
   pageNumber?: number,
-  startIndex = 0
+  startIndex = 0,
+  initialHeading?: string
 ): SourceSegment[] {
   const lines = rawText.split(/\r?\n/);
   const segments: SourceSegment[] = [];
-  let currentHeading: string | undefined;
+  let currentHeading: string | undefined = initialHeading;
   let buffer: string[] = [];
+  let tableLines: string[] = [];
 
-  const flush = () => {
-    const text = buffer.join(' ').replace(/\s+/g, ' ').trim();
-    buffer = [];
-    if (text.length < 15) return;
+  const pushSegment = (text: string) => {
     segments.push({
       id: `${sourceId}-seg-${startIndex + segments.length}`,
       sourceId,
       index: startIndex + segments.length,
-      text: text.slice(0, 1200),
+      text: text.slice(0, 1500),
       pageNumber,
       heading: currentHeading,
     });
   };
 
+  const flush = () => {
+    const text = buffer.join(' ').replace(/\s+/g, ' ').trim();
+    buffer = [];
+    if (text.length < 15) return;
+    pushSegment(text);
+  };
+
+  const flushTable = () => {
+    if (tableLines.length === 0) return;
+    const rows = tableLines;
+    tableLines = [];
+
+    const joined = rows.join('\n').trim();
+    if (!joined) return;
+    if (joined.length <= 1500) {
+      pushSegment(joined);
+      return;
+    }
+
+    const hasHeader = rows.length >= 2 && TABLE_SEPARATOR_REGEX.test(rows[1].trim());
+    const headerBlock = hasHeader ? `${rows[0]}\n${rows[1]}` : '';
+    const dataRows = hasHeader ? rows.slice(2) : rows;
+    let chunkRows: string[] = headerBlock ? [headerBlock] : [];
+
+    for (const row of dataRows) {
+      const candidate = [...chunkRows, row].join('\n');
+      if (candidate.length > 1500 && chunkRows.length > (headerBlock ? 1 : 0)) {
+        pushSegment(chunkRows.join('\n'));
+        chunkRows = headerBlock ? [headerBlock, row] : [row];
+      } else {
+        chunkRows.push(row);
+      }
+    }
+
+    if (chunkRows.length > (headerBlock ? 1 : 0) || (!headerBlock && chunkRows.length > 0)) {
+      pushSegment(chunkRows.join('\n'));
+    }
+  };
+
   for (const line of lines) {
     const trimmed = line.trim();
+    if (TABLE_LINE_REGEX.test(trimmed)) {
+      flush();
+      tableLines.push(trimmed);
+      continue;
+    }
+
+    if (tableLines.length > 0) {
+      flushTable();
+    }
+
     const headingMatch = trimmed.match(/^#{1,4}\s+(.+)$/);
     if (headingMatch) {
       flush();
@@ -69,21 +121,16 @@ export function chunkTextIntoSegments(
       continue;
     }
     buffer.push(trimmed);
-    if (buffer.join(' ').length > 520) {
+    if (buffer.join(' ').length > 800) {
       flush();
     }
   }
+
+  flushTable();
   flush();
 
   if (segments.length === 0 && rawText.trim().length > 0) {
-    segments.push({
-      id: `${sourceId}-seg-${startIndex}`,
-      sourceId,
-      index: startIndex,
-      text: rawText.trim().slice(0, 1200),
-      pageNumber,
-      heading: currentHeading,
-    });
+    pushSegment(rawText.trim());
   }
 
   return segments;
@@ -93,56 +140,65 @@ export async function extractFromPdfBuffer(
   buffer: Buffer,
   fileName: string
 ): Promise<SourceDocument> {
-  const { PDFParse } = await import('pdf-parse');
-  const parser = new PDFParse({ data: new Uint8Array(buffer), verbosity: 0 });
-  let pages: Array<{ num: number; text: string }> = [];
-  let fullText = '';
+  const extracted = await extractPdfLayoutDocument(buffer);
+  const minChars = extracted.pages.length >= 2 ? 50 : 10;
 
-  try {
-    const result = await parser.getText();
-    pages = result.pages || [];
-    fullText = result.text || '';
-  } finally {
-    await parser.destroy().catch(() => {});
-  }
-
-  if (!fullText.trim()) {
-    throw new Error('Could not extract text from PDF (the file may be scanned images or empty).');
+  if (
+    extracted.pages.length === 0 ||
+    extracted.totalMeaningfulChars < minChars ||
+    !extracted.fullText.trim()
+  ) {
+    throw new Error(
+      'Could not extract meaningful text from PDF (the file appears to be scanned images or empty).'
+    );
   }
 
   const sourceId = `src_${crypto.randomUUID().replace(/-/g, '').slice(0, 10)}`;
   const segments: SourceSegment[] = [];
+  let activeHeading: string | undefined;
 
-  for (const page of pages) {
-    if (!page.text || !page.text.trim()) continue;
+  for (const page of extracted.pages) {
+    if (!page.text.trim()) continue;
     const pageSegments = chunkTextIntoSegments(
       sourceId,
       page.text,
-      page.num,
-      segments.length
+      page.pageNumber,
+      segments.length,
+      activeHeading
     );
     segments.push(...pageSegments);
-    if (segments.length >= 60) break;
+
+    const lastHeadingInSegs = pageSegments[pageSegments.length - 1]?.heading;
+    const headingMatches = Array.from(page.text.matchAll(/^#{1,4}\s+(.+)$/gm));
+    const lastHeadingInText =
+      headingMatches.length > 0
+        ? headingMatches[headingMatches.length - 1][1].trim().slice(0, 140)
+        : undefined;
+    activeHeading = lastHeadingInText || lastHeadingInSegs || activeHeading;
+
+    if (segments.length >= 200) break;
   }
 
   if (segments.length === 0) {
-    segments.push(...chunkTextIntoSegments(sourceId, fullText, 1, 0));
+    segments.push(...chunkTextIntoSegments(sourceId, extracted.fullText, 1, 0));
   }
 
-  const firstLine = fullText
+  const firstLine = extracted.fullText
     .split(/\r?\n/)
     .map((l) => l.trim())
+    .filter((l) => !TABLE_LINE_REGEX.test(l) && !TABLE_SEPARATOR_REGEX.test(l))
+    .map((l) => l.replace(/^#{1,4}\s+/, '').trim())
     .find((l) => l.length > 4);
-  const title = (firstLine || fileName.replace(/\.[^.]+$/, '')).slice(0, 140);
+  const title = (firstLine || fileName.replace(/\.[^.]+$/, '') || 'Untitled PDF').slice(0, 140);
 
   return {
     id: sourceId,
     type: 'pdf',
     title,
-    originLabel: fileName,
-    fileName,
-    rawTextHash: sha256Hex(fullText),
-    segments: segments.slice(0, 60),
+    originLabel: fileName.slice(0, 240),
+    fileName: fileName.slice(0, 240),
+    rawTextHash: sha256Hex(extracted.fullText),
+    segments: segments.slice(0, 200),
     createdAt: Date.now(),
   };
 }

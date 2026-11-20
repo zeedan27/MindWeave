@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { isLiveAIConfigured, resolveRuntimeAIConfig, runAICompletion } from '@/lib/ai/gateway';
 import { extractAndValidateJson } from '@/lib/ai/json-guard';
+import { rankRelevantSegments } from '@/lib/ingestion/segment-ranker';
 import { apiError, apiSuccess, createRequestId, logger } from '@/lib/logger';
 import { checkRateLimit, getClientRateLimitKey } from '@/lib/rate-limit';
 import { NodeMasteryState, NodeMasteryStateSchema, StudyEvaluateRequestSchema } from '@/lib/schemas';
@@ -96,9 +97,12 @@ export async function POST(request: NextRequest) {
       return apiSuccess({ ...offline, usedFallback: true }, requestId);
     }
 
-    const segCtx = (sourceSegments || [])
-      .slice(0, 6)
-      .map((s) => s.text.slice(0, 250))
+    const segCtx = rankRelevantSegments(
+      `${node.topic} ${node.summary} ${userAnswer}`,
+      sourceSegments || [],
+      6
+    )
+      .map((s) => s.text.slice(0, 450))
       .join('\n');
 
     const raw = await runAICompletion({
@@ -117,6 +121,7 @@ Sub-concepts: ${node.childrenTopics.join(', ') || 'None'}
 ${segCtx ? `Source Evidence:\n${segCtx}\n` : ''}
 Learner's Response:\n"${userAnswer}"`,
       temperature: 0.25,
+      jsonMode: true,
     });
 
     const validated = extractAndValidateJson(raw, RawEvaluationSchema);

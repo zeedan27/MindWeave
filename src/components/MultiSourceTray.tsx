@@ -36,16 +36,17 @@ export default function MultiSourceTray({ isWeaving, onWeave }: MultiSourceTrayP
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const addStagedItem = useCallback((item: StagedSourceItem) => {
-    setStaged((prev) => {
-      if (prev.length >= MAX_SOURCES) {
+  const addStagedItem = useCallback(
+    (item: StagedSourceItem) => {
+      if (staged.length >= MAX_SOURCES) {
         setLocalError(`Maximum ${MAX_SOURCES} sources can be woven together per workspace.`);
-        return prev;
+        return;
       }
       setLocalError(null);
-      return [...prev, item];
-    });
-  }, []);
+      setStaged((prev) => (prev.length >= MAX_SOURCES ? prev : [...prev, item]));
+    },
+    [staged.length]
+  );
 
   const handleStageTopic = () => {
     const clean = topicInput.trim();
@@ -89,18 +90,27 @@ export default function MultiSourceTray({ isWeaving, onWeave }: MultiSourceTrayP
   };
 
   const handleFiles = (files: FileList | null) => {
-    if (!files) return;
+    if (!files || isWeaving) return;
+    const accepted: StagedSourceItem[] = [];
+    let nextError: string | null = null;
+    let remaining = MAX_SOURCES - staged.length;
+
     for (const file of Array.from(files)) {
       const ext = '.' + (file.name.split('.').pop()?.toLowerCase() || '');
       if (!['.pdf', '.txt', '.md'].includes(ext)) {
-        setLocalError(`"${file.name}" is unsupported. Use PDF, TXT, or MD files.`);
+        nextError = `"${file.name}" is unsupported. Use PDF, TXT, or MD files.`;
         continue;
       }
       if (file.size > MAX_FILE_BYTES) {
-        setLocalError(`"${file.name}" exceeds the 20 MB limit.`);
+        nextError = `"${file.name}" exceeds the 20 MB limit.`;
         continue;
       }
-      addStagedItem({
+      if (remaining <= 0) {
+        nextError = `Maximum ${MAX_SOURCES} sources can be woven together per workspace.`;
+        break;
+      }
+      remaining -= 1;
+      accepted.push({
         id: `stg_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
         type: 'file',
         title: file.name,
@@ -108,6 +118,11 @@ export default function MultiSourceTray({ isWeaving, onWeave }: MultiSourceTrayP
         file,
       });
     }
+
+    if (accepted.length > 0) {
+      setStaged((prev) => [...prev, ...accepted].slice(0, MAX_SOURCES));
+    }
+    setLocalError(nextError);
   };
 
   const handleSubmit = async () => {
@@ -311,52 +326,62 @@ export default function MultiSourceTray({ isWeaving, onWeave }: MultiSourceTrayP
 
       {/* Document Upload Tab */}
       {activeTab === 'document' && (
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragActive(true);
-          }}
-          onDragLeave={(e) => {
-            e.preventDefault();
-            setDragActive(false);
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            setDragActive(false);
-            handleFiles(e.dataTransfer.files);
-          }}
-          onClick={() => fileInputRef.current?.click()}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
+        <>
+          <div
+            onDragOver={(e) => {
               e.preventDefault();
-              fileInputRef.current?.click();
-            }
-          }}
-          className="rounded-lg border-2 border-dashed p-5 text-center cursor-pointer transition-colors"
-          style={{
-            borderColor: dragActive ? 'var(--mw-primary)' : 'var(--mw-border)',
-            backgroundColor: dragActive ? 'var(--mw-primary-soft)' : 'var(--mw-bg)',
-          }}
-        >
-          <Upload className="w-5 h-5 mx-auto mb-1.5" style={{ color: 'var(--mw-primary)' }} />
-          <p className="text-sm font-medium">Drop PDF, Markdown, or TXT papers (up to 20 MB)</p>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--mw-muted)' }}>
-            Extracts exact page numbers so every map node links back to source excerpts.
-          </p>
+              if (!isWeaving) setDragActive(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              setDragActive(false);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragActive(false);
+              if (isWeaving) return;
+              handleFiles(e.dataTransfer.files);
+            }}
+            onClick={() => {
+              if (!isWeaving) fileInputRef.current?.click();
+            }}
+            role="button"
+            tabIndex={isWeaving ? -1 : 0}
+            aria-disabled={isWeaving}
+            onKeyDown={(e) => {
+              if (isWeaving) return;
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
+            className={`rounded-lg border-2 border-dashed p-5 text-center transition-colors ${
+              isWeaving ? 'opacity-60 pointer-events-none cursor-not-allowed' : 'cursor-pointer'
+            }`}
+            style={{
+              borderColor: dragActive ? 'var(--mw-primary)' : 'var(--mw-border)',
+              backgroundColor: dragActive ? 'var(--mw-primary-soft)' : 'var(--mw-bg)',
+            }}
+          >
+            <Upload className="w-5 h-5 mx-auto mb-1.5" style={{ color: 'var(--mw-primary)' }} />
+            <p className="text-sm font-medium">Drop PDF, Markdown, or TXT papers (up to 20 MB)</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--mw-muted)' }}>
+              Extracts exact page numbers so every map node links back to source excerpts.
+            </p>
+          </div>
           <input
             ref={fileInputRef}
             type="file"
-            accept=".pdf,.txt,.md"
+            accept="application/pdf,text/plain,text/markdown,.pdf,.txt,.md"
             multiple
+            disabled={isWeaving}
             className="hidden"
             onChange={(e) => {
               handleFiles(e.target.files);
               e.target.value = '';
             }}
           />
-        </div>
+        </>
       )}
 
       {/* Notes Tab */}
